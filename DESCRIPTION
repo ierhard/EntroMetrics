@@ -13,3 +13,5 @@ Imports:
     dplyr,
     entropy,
     purrr
+URL: https://github.com/ierhard/EntroMetrics
+BugReports: https://github.com/ierhard/EntroMetrics/issues
