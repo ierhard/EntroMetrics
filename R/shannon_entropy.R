@@ -72,7 +72,7 @@ shannon_entropy <- function(bin_counts,
 
     # Standard error estimate
 
-    p_hat <- freqs(y = bin_counts, method = "ML")
+    p_hat <- entropy::freqs(y = bin_counts, method = "ML")
 
     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
 
@@ -96,7 +96,7 @@ shannon_entropy <- function(bin_counts,
 
     # Standard error estimate
 
-    p_hat <- freqs(y = bin_counts, method = "ML")
+    p_hat <- entropy::freqs(y = bin_counts, method = "ML")
 
     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
 
