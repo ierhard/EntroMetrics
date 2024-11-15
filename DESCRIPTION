@@ -2,9 +2,9 @@ Package: EntroMetrics
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("Ian", "Erhard", , "ian.erhard@dkfz-heidelberg.de", role = c("aut", "cre"),
+    person("Ian", "Erhard", , "ian.erhard@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: One-stop, "batteries included" package for estimating Shannon entropy -- point estimates, confidence intervals, and guidance for choice of methods.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
