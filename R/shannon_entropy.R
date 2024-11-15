@@ -9,6 +9,7 @@
 #' @param normalize Logical vector for normalization (TRUE -> normalized entropy)
 #'
 #' @return Point estimate and confidence interval
+#'
 #' @export
 #'
 #' @examples
@@ -68,7 +69,7 @@ shannon_entropy <- function(bin_counts,
   if(confidence_interval.method == "Wald"){
 
     # Relevant z-score
-    z <- qnorm(1-alpha/2)
+    z <- stats::qnorm(1-alpha/2)
 
     # Standard error estimate
 
@@ -76,15 +77,15 @@ shannon_entropy <- function(bin_counts,
 
     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
 
-    H.empirical <- entropy.empirical(bin_counts, unit = "log2")
+    H.empirical <- entropy::entropy.empirical(bin_counts, unit = "log2")
 
-    std_error <- sqrt((nu_hat - H.empirical^2) / n) %>% max(., 0)
+    std_error <- sqrt((nu_hat - H.empirical^2) / n) %>% max(0)
 
     # confidence interval
 
-    ci.lower <- (H_hat - z*std_error) %>% min(., H_max) %>% max(., 0)
+    ci.lower <- (H_hat - z*std_error) %>% min(H_max) %>% max(0)
 
-    ci.upper <- (H_hat + z*std_error) %>% min(., H_max) %>% max(., 0)
+    ci.upper <- (H_hat + z*std_error) %>% min(H_max) %>% max(0)
 
   }
 
@@ -92,7 +93,7 @@ shannon_entropy <- function(bin_counts,
   if(confidence_interval.method == "Asym.Norm_quadratic"){
 
     # Relevant z-score
-    z <- qnorm(1-alpha/2)
+    z <- stats::qnorm(1-alpha/2)
 
     # Standard error estimate
 
@@ -100,7 +101,7 @@ shannon_entropy <- function(bin_counts,
 
     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
 
-    H.empirical <- entropy.empirical(bin_counts, unit = "log2")
+    H.empirical <- entropy::entropy.empirical(bin_counts, unit = "log2")
 
     a <- (1 + z^2 / n)
 
@@ -156,7 +157,7 @@ shannon_entropy <- function(bin_counts,
   # Normalize (if necessary) ---------------------------------------------------
 
   if(normalize == FALSE){
-    result <- data.frame(normalized.entropy = H_hat,
+    result <- data.frame(entropy = H_hat,
                          ci.lower = ci.lower,
                          ci.upper = ci.upper)
   } else {
