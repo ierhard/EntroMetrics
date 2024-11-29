@@ -14,6 +14,11 @@ entropy_ci <- function(bin_counts,
                        ...){ # Shared args (will try to match), e.g. B = 10^3 or pre_calc_bootstraps for bootstrap methods or
                              # conf_level = 0.95 or pt_est_fct = entropy_estimator_ML
 
+  # # FOR TESTING ----------------------------------------------------------------
+
+  # #-----------------------------------------------------------------------------
+
+
   # Since entropy_pt_est() delists output when only one method is specified,
   # we "relist" this here to avoid errors.
   if("pt_est" %in% names(pt_est_outputs)){
@@ -45,7 +50,10 @@ entropy_ci <- function(bin_counts,
   # across multiple methods.
 
   method_names <- purrr::map_chr(multiple_methods,
-                                 \(multiple_methods_elt) return(multiple_methods_elt$method) )
+                                 function(multiple_methods_elt){
+                                   return(multiple_methods_elt[[1]]) # Extract method name
+                                 }
+                                 )
 
   if(any(stringr::str_starts(method_names, "bootstrap"))){
 
