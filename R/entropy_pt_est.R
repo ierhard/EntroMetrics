@@ -60,8 +60,6 @@ entropy_pt_est <- function(bin_counts,
   # Ensure that bin counts are valid (throws error if not)
   valid_bin_counts(bin_counts)
 
-  # If method = "own",
-
   # If no multiple_methods list provided, create a default list with the selected method
   if(is.null(multiple_methods)){
     multiple_methods <- list(list(method = method, method_args = method_args))

@@ -1,29 +1,100 @@
 entropy_ci <- function(bin_counts,
-                       method = c("bootstrap_pct",
+                       method = c("Wald",
+                                  "bootstrap_pct",
                                   "bootstrap_t",
                                   "bootstrap_bca",
-                                  "Wald",
                                   "multiple"), # Available CI methods; "multiple" allows multiple methods.
                        method_args = NULL, # Arguments specific to the selected CI method.
                        multiple_methods = NULL, # Specify multiple methods and their arguments. Format: list(m1 = list(method = "bootstrap_pct", method_args = list(...)), m2 = ...)
-                       pre_calc_bootstraps = NULL, # Optional: precomputed bootstrap samples to avoid redundant computations.
                        unit = c("log2", "ln", "normalize"),
                        conf_level = 0.95, # Confidence level for CI methods.
-                       ... ){ # Shared args (will try to match), e.g. B = 10^3 or pre_calc_bootstraps for bootstrap methods or
-                              # conf_level = 0.95 or pt_est_fct = entropy_estimator_ML
+                       pt_est_fcts = NULL,
+                       pt_est_outputs = NULL,
+                       # pre_calc_bootstraps = NULL, # Optional: precomputed bootstrap samples to avoid redundant computations.
+                       ...){ # Shared args (will try to match), e.g. B = 10^3 or pre_calc_bootstraps for bootstrap methods or
+                             # conf_level = 0.95 or pt_est_fct = entropy_estimator_ML
 
-  # Ensure bin_counts is a vector of non-negative integers (e.g., counts in histogram bins).
-  if(!all(bin_counts == floor(bin_counts) & bin_counts >= 0)){
-    stop("Error: bin_counts must be a vector of non-negative whole numbers.")
+  # Since entropy_pt_est() delists output when only one method is specified,
+  # we "relist" this here to avoid errors.
+  if("pt_est" %in% names(pt_est_outputs)){
+    pt_est_outputs <- list(pt_est_outputs)
   }
 
-  # Match method argument to one of the allowed options; default is the first ("bootstrap_pct").
+  # Match arguments
   method <- match.arg(method)
+  unit <- match.arg(unit)
 
-  # If multiple_methods is not provided, create a default list with one method.
+  # Ensure that bin counts are valid (throws error if not)
+  valid_bin_counts(bin_counts)
+
+  # If no multiple_methods list provided, create a default list with the selected method
   if(is.null(multiple_methods)){
     multiple_methods <- list(list(method = method, method_args = method_args))
   }
+
+  # If share arguments ... non-empty,
+  # then assign these to the method_args of each element in multiple_methods,
+  # (unless already defined in method_args, in which case the method_args value takes precedence).
+
+  multiple_methods <- update_multiple_methods_with_shared_args(
+    multiple_methods = multiple_methods,
+    shared_args_list = list(...)
+  )
+
+  # If bootstrap methods are present, precalculate bootstrap subsamples for shared use
+  # across multiple methods.
+
+  method_names <- purrr::map_chr(multiple_methods,
+                                 \(multiple_methods_elt) return(multiple_methods_elt$method) )
+
+  if(any(stringr::str_starts(method_names, "bootstrap"))){
+
+    # Extract B from method_args if present
+    B_max <- purrr::map_dbl(multiple_methods,
+                            \(multiple_methods_elt){
+                              return(multiple_methods_elt$method_args$B)
+                              }
+                            ) %>% max()
+
+    bootstrap_bin_counts <- rmultinom(B_max,
+                                      sum(bin_counts),
+                                      bin_counts/sum(bin_counts))
+
+  }
+
+  # Update multiple_methods with point estimate functions and bootstrap subsamples
+  # as necessary.
+
+  multiple_methods <- purrr::pmap(
+
+    list(multiple_methods, pt_est_fcts, pt_est_outputs),
+
+    function(multiple_methods_elt, pt_est_fct_elt, pt_est_output_elt){
+
+      # Add point estimate output to each method_args list
+      multiple_methods_elt$method_args$pt_est_output <- pt_est_output_elt
+
+      # Add point estimate function where applicable
+      elt_arg_names <- names(formals(get(
+
+        paste0("entropy_ci_", multiple_methods_elt$method)
+
+        )))
+
+      if("pt_est_fct" %in% elt_arg_names){
+        multiple_methods_elt$method_args$pt_est_fct <- pt_est_fct_elt
+      }
+
+      # Add precalculated bootstrap subsamples (for bin_counts) where applicable
+      if(stringr::str_starts(multiple_methods_elt$method, "bootstrap")){
+        multiple_methods_elt$method_args$pre_calc_bootstraps <- bootstrap_bin_counts
+      }
+
+      return(multiple_methods_elt)
+
+    }
+
+  )
 
   # Helper function to calculate confidence intervals for a single method.
   # Assumes input of the form list(method = "bootstrap_pct", method_args = list(...)).
@@ -37,17 +108,13 @@ entropy_ci <- function(bin_counts,
     all_args <- method_args
     all_args$bin_counts <- bin_counts
 
-    # If using a bootstrap method and pre-calculated bootstraps are provided, include them in the arguments.
-    if(stringr::str_starts(method, "bootstrap") & !is.na(pre_calc_bootstraps)){
-      all_args$pre_calc_bootstraps <- pre_calc_bootstraps
-    }
+    # Call the appropriate function based on the method name
+    result <- do.call(
 
-    # Use switch to call the appropriate function based on the method name.
-    result <- switch(method,
-                     "bootstrap_pct"  = do.call(entropy_ci_bootstrap_pct, all_args),
-                     "bootstrap_t"    = do.call(entropy_ci_bootstrap_t,   all_args),
-                     "bootstrap_bca"  = do.call(entropy_ci_bootstrap_bca, all_args),
-                     "Wald"           = do.call(entropy_ci_Wald,          all_args)
+      get(paste0("entropy_ci_", method)),
+
+      all_args
+
     )
 
     return(result)

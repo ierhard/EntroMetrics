@@ -2,7 +2,7 @@
 % Please edit documentation in R/entropy_ci_Wald.R
 \name{entropy_ci_Wald}
 \alias{entropy_ci_Wald}
-\title{Wald confidence interval (based on asymptotic normality)}
+\title{Wald confidence interval for Shannon entropy}
 \usage{
 entropy_ci_Wald(
   bin_counts,
@@ -10,20 +10,41 @@ entropy_ci_Wald(
   z_score_dist = c("t", "normal"),
   pt_est = NULL,
   prob_est = NULL,
-  unit = c("log2", "ln", "normalize")
+  unit = c("log2", "ln", "normalize"),
+  pt_est_output = NULL
 )
 }
 \arguments{
-\item{bin_counts}{Vector of observed bin counts}
+\item{bin_counts}{A numeric vector of observed bin counts.}
 
-\item{conf_level}{Confidence level}
+\item{conf_level}{A numeric value indicating the confidence level for the interval (default is 0.95).}
 
-\item{z_score_dist}{Choose distribution from which to derive z-values: \code{"t"} (\eqn{t_{n-1}} distribution, where \eqn{n} is sample size; more conservative, especially recommended when \eqn{n \leq 30}) and \code{"normal"} (standard normal distribution)}
+\item{z_score_dist}{A character string specifying the distribution to derive z-values from: either "t" for the \eqn{t_{n-1}} distribution (recommended for sample sizes \eqn{n \leq 30}) or "normal" for the standard normal distribution. Defaults to "t".}
 
-\item{pt_est}{Optional: Point estimate of entropy or a function (of bin counts) that returns a point estimate of entropy in bits. (For validity, the point estimator should share asymptotic variance with ML estimator for entropy, e.g. Millwer-Madow estimator.) By default ML estimator of entropy is used.}
+\item{pt_est}{Optional: A numeric value for the point estimate of entropy or a function that computes the entropy (in bits) given bin counts. If not provided, the ML estimator is used by default. The point estimator should share the asymptotic variance with the ML estimator (e.g., Miller-Madow estimator).}
 
-\item{prob_est}{Optional: Vector of bin probabilites or a function (of bin counts) that returns a vector of bin probabilities. By default ML estimator of probabilities is used.}
+\item{prob_est}{Optional: A numeric vector of bin probabilities or a function that returns a vector of probabilities given the bin counts. If not provided, the ML estimator for probabilities is used by default.}
+
+\item{unit}{A character string specifying the unit for entropy: "log2" for bits, "ln" for nats, or "normalize" for normalized entropy/evenness. Defaults to "log2".}
+
+\item{pt_est_output}{Optional: A list output from an entropy point estimation function (e.g., \code{entropy_estimator_ML}). If provided, this list can update \code{pt_est} and \code{prob_est} if they are included.}
+}
+\value{
+A list with the following components:
+\item{ci}{A numeric vector with the lower and upper bounds of the confidence interval for Shannon entropy.}
+\item{pt_est}{The point estimate of Shannon entropy.}
+\item{prob_est}{The estimated bin probabilities.}
+\item{std_error}{The standard error of the entropy estimate.}
 }
 \description{
-Confidence interval based on the Wald method (normality assumption) for the entropy of a distribution and standard error estimates of the form \eqn{\hat S_n = \sqrt{\frac 1n \left[\big( \sum_{i=1}^s \hat p_i(\log_2 \hat p_i)^2\big) - \hat H^2 \right]}} due to Basharin's proof of asymptotic normality and \eqn{O(1/n^2)} approximation of the variance of the ML entropy estimator.
+This function computes a confidence interval for Shannon entropy using the Wald method, which relies on the assumption of asymptotic normality. The standard error estimate is based on Basharin's asymptotic normality proof and an \eqn{O(1/n^2)} approximation of the variance of the maximum likelihood (ML) entropy estimator.
+}
+\examples{
+# Compare t vs. normal distribution for z-values
+entropy_ci_Wald(c(4, 1, 5), z_score_dist = "t")$ci
+entropy_ci_Wald(c(4, 1, 5), z_score_dist = "normal")$ci
+
+# Using output from entropy_estimator_MM()
+entropy_ci_Wald(1:10)
+entropy_ci_Wald(1:10, pt_est_output = entropy_estimator_MM(1:10))
 }
