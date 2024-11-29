@@ -1,18 +1,34 @@
-#' Wald confidence interval (based on asymptotic normality)
+#' Wald confidence interval for Shannon entropy
 #'
 #' @description
-#' Confidence interval based on the Wald method (normality assumption) for the entropy of a distribution and standard error estimates of the form \eqn{\hat S_n = \sqrt{\frac 1n \left[\big( \sum_{i=1}^s \hat p_i(\log_2 \hat p_i)^2\big) - \hat H^2 \right]}} due to Basharin's proof of asymptotic normality and \eqn{O(1/n^2)} approximation of the variance of the ML entropy estimator.
+#' This function computes a confidence interval for Shannon entropy using the Wald method, which relies on the assumption of asymptotic normality. The standard error estimate is based on Basharin's asymptotic normality proof and an \eqn{O(1/n^2)} approximation of the variance of the maximum likelihood (ML) entropy estimator.
 #'
-#' @param bin_counts Vector of observed bin counts
-#' @param conf_level Confidence level
-#' @param z_score_dist Choose distribution from which to derive z-values: `"t"` (\eqn{t_{n-1}} distribution, where \eqn{n} is sample size; more conservative, especially recommended when \eqn{n \leq 30}) and `"normal"` (standard normal distribution)
-#' @param pt_est Optional: Point estimate of entropy or a function (of bin counts) that returns a point estimate of entropy in bits. (For validity, the point estimator should share asymptotic variance with ML estimator for entropy, e.g. Millwer-Madow estimator.) By default ML estimator of entropy is used.
-#' @param prob_est Optional: Vector of bin probabilites or a function (of bin counts) that returns a vector of bin probabilities. By default ML estimator of probabilities is used.
+#' @param bin_counts A numeric vector of observed bin counts.
+#' @param conf_level A numeric value indicating the confidence level for the interval (default is 0.95).
+#' @param z_score_dist A character string specifying the distribution to derive z-values from: either "t" for the \eqn{t_{n-1}} distribution (recommended for sample sizes \eqn{n \leq 30}) or "normal" for the standard normal distribution. Defaults to "t".
+#' @param pt_est Optional: A numeric value for the point estimate of entropy or a function that computes the entropy (in bits) given bin counts. If not provided, the ML estimator is used by default. The point estimator should share the asymptotic variance with the ML estimator (e.g., Miller-Madow estimator).
+#' @param prob_est Optional: A numeric vector of bin probabilities or a function that returns a vector of probabilities given the bin counts. If not provided, the ML estimator for probabilities is used by default.
+#' @param unit A character string specifying the unit for entropy: "log2" for bits, "ln" for nats, or "normalize" for normalized entropy/evenness. Defaults to "log2".
+#' @param pt_est_output Optional: A list output from an entropy point estimation function (e.g., `entropy_estimator_ML`). If provided, this list can update `pt_est` and `prob_est` if they are included.
 #'
-#' @return
+#' @return A list with the following components:
+#' \item{ci}{A numeric vector with the lower and upper bounds of the confidence interval for Shannon entropy.}
+#' \item{pt_est}{The point estimate of Shannon entropy.}
+#' \item{prob_est}{The estimated bin probabilities.}
+#' \item{std_error}{The standard error of the entropy estimate.}
+#'
 #' @export
 #'
 #' @examples
+#' # Compare t vs. normal distribution for z-values
+#' entropy_ci_Wald(c(4, 1, 5), z_score_dist = "t")$ci
+#' entropy_ci_Wald(c(4, 1, 5), z_score_dist = "normal")$ci
+#'
+#' # Using output from entropy_estimator_MM()
+#' entropy_ci_Wald(1:10)
+#' entropy_ci_Wald(1:10, pt_est_output = entropy_estimator_MM(1:10))
+
+
 entropy_ci_Wald <- function(
 
   bin_counts,
@@ -20,27 +36,34 @@ entropy_ci_Wald <- function(
   z_score_dist = c("t", "normal"),
   pt_est = NULL,
   prob_est = NULL,
-  unit = c("log2", "ln", "normalize")
+  unit = c("log2", "ln", "normalize"),
+  pt_est_output = NULL
 
 ){
-
+  # Match argument values
   z_score_dist <- match.arg(z_score_dist)
   unit <- match.arg(unit)
+
+  # Update pt_est and prob_est if pt_est_output is provided
+
+  update_vars_in_current_scope(potential_update_list = pt_est_output,
+                               possible_to_update_vec = c("pt_est", "prob_est"))
 
   # Sample size
   n <- sum(bin_counts)
 
+  # Alpha level for CI
   alpha <- 1 - conf_level
 
-  # Wald CI (based on asymptotic normality)
-
-  # Relevant z-score
-  z <- ifelse(z_score_dist == "t", stats::qt(1-alpha/2, df = n-1), stats::qnorm(1-alpha/2))
+  # Calculate relevant z-score
+  z <- ifelse(z_score_dist == "t",
+              stats::qt(1-alpha/2, df = n-1),
+              stats::qnorm(1-alpha/2))
 
   # Standard error estimate (based on Basharin [1959; doi: 10.1137/1104033])
 
   p_hat <- if (is.null(prob_est)) {
-    entropy::freqs(y = bin_counts, method = "ML")
+    bin_counts/sum(bin_counts)
   } else if (is.function(prob_est)) {
     prob_est(bin_counts)
   } else if (!is.null(prob_est) & !is.function(prob_est)) {
@@ -51,6 +74,7 @@ entropy_ci_Wald <- function(
 
   nu_hat <- sum(p_hat[p_hat > 0] * (log2(p_hat[p_hat > 0]))^2)
 
+  # Point estimate
   H_hat <- if (is.null(pt_est)) {
     entropy_estimator_ML(bin_counts)$pt_est
   } else if (is.function(pt_est)) {
@@ -61,21 +85,20 @@ entropy_ci_Wald <- function(
     stop("Invalid `pt_est` argument.")
   }
 
+  # Calculate standard error
   std_error <- sqrt((nu_hat - trim(H_hat)^2) / n) %>% max(0)
 
-  # confidence interval
+  # Compute confidence interval bounds
+  ci_lower <- H_hat - z * std_error
+  ci_upper <- H_hat + z * std_error
 
-  ci.lower <- H_hat - z * std_error
-
-  ci.upper <- H_hat + z * std_error
-
-  # Return results
-
-  results_list <- list(ci = c(ci.lower = ci.lower, ci.upper = ci.upper),
+  # Prepare results list
+  results_list <- list(ci = c(ci_lower = ci_lower, ci_upper = ci_upper),
                        pt_est = H_hat,
                        prob_est = p_hat,
                        std_error = std_error)
 
+  # Convert units if necessary
   if(unit != "log2"){
 
     results_list[setdiff(names(results_list), "prob_est")] <- purrr::map(
@@ -90,6 +113,7 @@ entropy_ci_Wald <- function(
 
   }
 
+  # Return results
   return(results_list)
 
 }

@@ -1,15 +1,20 @@
 shannon_entropy_new <- function(bin_counts,
                                 pt_method = c("ML",
                                               "MM",
-                                              "SHR",
+                                              "Dirichlet",
+                                                "Jeffrey",
+                                                "Laplace",
+                                                "SG",
+                                                "minimax",
                                               "multiple"),
-                                pt_method_args = list(NULL),
-                                ci_method = c("bootstrap_pct",
+                                pt_method_args = NULL,
+                                ci_method = c("automatic",
+                                              "Wald",
+                                              "bootstrap_pct",
                                               "bootstrap_t",
                                               "bootstrap_bca",
-                                              "Wald",
                                               "multiple"),
-                                ci_method_args = list(NULL),
+                                ci_method_args = NULL,
                                 multiple_methods = NULL,
                                 unit = c("log2", "ln", "normalize"),
                                 conf_level = 0.95,
@@ -87,15 +92,16 @@ shannon_entropy_new <- function(bin_counts,
   # Point estimation -----------------------------------------------------------
 
   # Compute point estimates for all methods in multiple_methods list
-  pt_estimates_list <- entropy_pt_est(bin_counts,
-                                      method = "multiple",
-                                      multiple_methods = multiple_methods[1:2])
+  pt_est_outputs <- entropy_pt_est(bin_counts,
+                                   method = "multiple",
+                                   multiple_methods = multiple_methods[1:2],
+                                   ...)
 
   # CI calculations ------------------------------------------------------------
 
   # Save list of point estimator functions (one for each element of multiple_methods)
-  # with sole argument bin_counts (useful for bootstrapping)
-  pt_estimator_fcts <- purrr::map(
+  # with sole argument bin_counts (useful for resampling methods)
+  pt_est_fcts <- purrr::map(
 
     multiple_methods,
 
@@ -104,96 +110,38 @@ shannon_entropy_new <- function(bin_counts,
         # Return point estimate for given bin_counts using specified method
         entropy_pt_est(bin_counts,
                        method = method_list_elt$pt_method,
-                       method_args = method_list_elt$pt_method_args)$entropy_pt_est
+                       method_args = method_list_elt$pt_method_args,
+                       ...)$pt_est
       }
       return(fct)
     }
 
   )
 
-  # Generate bootstraps if applicable -----------------------------------------
-
-  # Check if any of the methods require bootstrapping
-  is_bootstrap <- purrr::map_chr(multiple_methods,
-                                 \(method_list_elt){
-                                   method_list_elt$ci_method %>%
-                                     stringr::str_starts("bootstrap") %>%
-                                     return()
-                                 })
-
-  # If any bootstrap methods are required, generate bootstrap samples
-  if(any(is_bootstrap)){
-    # Find maximum number of bootstraps needed among all methods
-    B_max <- purrr::map_int(multiple_methods[is_bootstrap],
-                            \(method_list_elt){
-                              B_temp <- method_list_elt$ci_method_args$B
-                              B_temp <- if_else(is.null(B_temp),
-                                                10^3,
-                                                B_temp)
-                              return(B_temp)
-                            }) %>% max()
-
-    # Generate multinomial bootstrap samples
-    bootstrap_subsamples <- rmultinom(n = B_max,
-                                      size = sum(bin_counts),
-                                      prob = bin_counts / sum(bin_counts)) %>%
-      as.data.frame()
-
-    # Name each bootstrap sample column
-    names(bootstrap_subsamples) <- paste0("b", 1:B_max)
-  }
-
-  # Append additional arguments for CI calculation ----------------------------
-
-  multiple_methods <- purrr::map(
-    multiple_methods,
-    function(multiple_methods_elt){
-
-      ci_method <- multiple_methods_elt$ci_method
-      ci_fct_name <- paste0("entropy_ci_", ci_method)
-      ci_fct_args <- names(formals(get(ci_fct_name)))
-
-      # Add pt_est_fct to ci_method_args if needed and not provided
-      if(("pt_est_fct" %in% ci_fct_args) &
-         is.null(multiple_methods_elt$ci_method_args$pt_est_fct)){
-
-        multiple_methods_elt$ci_method_args$pt_est_fct <- function(bin_counts){
-          entropy_pt_est(bin_counts,
-                         method = multiple_methods_elt$pt_method,
-                         method_args = multiple_methods_elt$pt_method_args)$entropy_pt_est
-        }
-      }
-      # Add pt_est to ci_method_args if needed and not provided
-      if(("pt_est" %in% ci_fct_args) &
-         is.null(multiple_methods_elt$ci_method_args$pt_est)){
-
-        multiple_methods_elt$ci_method_args$pt_est <- entropy_pt_est(
-          bin_counts,
-          method = multiple_methods_elt$pt_method,
-          method_args = multiple_methods_elt$pt_method_args)$entropy_pt_est
-      }
-
-      return(multiple_methods_elt)
-    }
-  )
-
-  # Calculate confidence intervals --------------------------------------------
+  # Calculate confidence intervals
 
   # Use entropy_ci() function to calculate confidence intervals
-  ci_list <- entropy_ci(bin_counts,
-                        method = "multiple",
-                        multiple_methods = multiple_methods,
-                        pre_calc_bootstraps = bootstrap_subsamples)
+  ci_outputs <- entropy_ci(bin_counts,
+                           method = "multiple",
+                           multiple_methods = multiple_methods,
+                           conf_level = conf_level,
+                           unit = unit,
+                           pt_est_fcts = pt_est_fcts,
+                           pt_est_outputs = pt_est_outputs,
+                           ...)
 
   # Merge point estimates with confidence interval results --------------------
 
   if(length(multiple_methods) == 1){
-    result_list <- c(pt_estimates_list, ci_list)
+
+    result_list <- merge_lists_with_names(pt_est_outputs$pt_est,
+                                          ci_outputs$ci)
+
   } else {
-    result_list <- purrr::map2(pt_estimates_list, ci_list,
-                               function(L1, L2){
-                                 return(c(L1, L2))
-                               })
+
+    result_list <- purrr::map2(pt_est_outputs, ci_outputs,
+                               merge_lists_with_names)
+
   }
 
   # Return final result -------------------------------------------------------
