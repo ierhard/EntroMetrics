@@ -92,14 +92,12 @@ entropy_pt_est <- function(bin_counts,
       all_args$unit <- unit
 
       # Calculate point estimate using the appropriate estimator function
-      result <- switch(method,
-                       "ML" = do.call(entropy_estimator_ML, all_args),  # Maximum Likelihood estimator
-                       "MM" = do.call(entropy_estimator_MM, all_args),  # Method of Moments estimator
-                       "Dirichlet" = do.call(entropy_estimator_Dirichlet, all_args),
-                         "Jeffrey" = do.call(entropy_estimator_Jeffrey, all_args),
-                         "Laplace" = do.call(entropy_estimator_Laplace, all_args),
-                         "SG" = do.call(entropy_estimator_SG, all_args),
-                         "minimax" = do.call(entropy_estimator_minimax, all_args)
+      result <- do.call(
+
+        get(paste0("entropy_estimator_", method)),
+
+        all_args
+
       )
 
       return(result)

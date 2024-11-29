@@ -1,185 +1,246 @@
-#' #' Shannon entropy estimation
-#' #'
-#' #' @param bin_counts Vector of bin counts (data)
-#' #' @param pt_method Point estimator
-#' #' @param ci_method Confidence interval estimator
-#' #' @param conf_level Confidence level (default = 0.95)
-#' #' @param B Number of bootstrap re-samplings (if applicable)
-#' #' @param normalize Logical vector for normalization (TRUE -> normalized entropy)
-#' #'
-#' #' @return Point estimate and confidence interval
-#' #'
-#' #' @export
-#' #'
-#' #' @examples
-#' #' shannon_entropy(c(100,9,0), TRUE, "ML", "Wald", normalize = TRUE)
-#' shannon_entropy <- function(bin_counts,
-#'                             pt_method = c(
-#'                               "ML", # Max. likelihood
-#'                               "MM", # Miller-Madow
-#'                               "HS"  # Hausser-Strimmer
-#'                             ),
-#'                             pt_method_args,
-#'                             ci_method = c(
-#'                               "Wald",                     # Normality assumption
-#'                               "Asym.Norm_quadratic",      # Normality assumption -> solve quadratic (Erhard)
-#'                               "pct_boot",                 # percent bootstrap
-#'                               "multinom_ci_based_Wallis", # Sean Wallis's (pairs with ML-estimator)
-#'                               "multinom_ci_based_Erhard",  # Erhard (pairs with ML-estimator)
-#'                               "multiple" # If multiple, then include them in ... as a character vector called ci_methods, e.g. c("ML", "MM")
-#'                             ),
-#'                             ci_method_args,
-#'                             conf_level = 0.95,
-#'                             B = 10^3, # REVISE_NOTE: This should go in ci_method_args # Number of bootstrap re-samplings (if CI method is "pct_boot")
-#'                             unit = c("log2", "ln", "normalize")
-#'                             ...){
+#' Shannon Entropy Point and Confidence Interval Estimation
 #'
-#'   # Ensure valid methods are provided. If none specified, assume default
-#'   pt_method <- match.arg(pt_method)
-#'   ci_method <- match.arg(ci_method)
+#' This function calculates the Shannon entropy of a set of binned data using
+#' specified point estimation and confidence interval (CI) methods.
 #'
-#'   # Point estimate -------------------------------------------------------------
+#' @param bin_counts A numeric vector of non-negative values representing the
+#'   counts or frequencies in each bin. Zero counts are allowed.
+#' @param pt_method Character string specifying the point estimation method for
+#'   entropy. Options are:
+#'   - `"ML"`: Maximum Likelihood (plugin estimator)
+#'   - `"MM"`: Miller-Madow
+#'   - `"Dirichlet"`: Dirichlet prior
+#'   - `"Jeffrey"`: Jeffrey prior
+#'   - `"Laplace"`: Laplace prior
+#'   - `"SG"`: Schürmann-Grassberger
+#'   - `"minimax"`: Minimax prior
+#'   - `"multiple"`: Combine multiple methods.
+#' @param pt_method_args Optional list of arguments specific to the chosen
+#'   `pt_method`. Default is `NULL`.
+#' @param ci_method Character string specifying the confidence interval (CI)
+#'   estimation method. Options are:
+#'   - `"automatic"`: Automatically selects the best CI method.
+#'   - `"Wald"`: Wald interval.
+#'   - `"bootstrap_pct"`: Percentile bootstrap.
+#'   - `"bootstrap_t"`: Bootstrap-t interval.
+#'   - `"bootstrap_bca"`: Bias-corrected and accelerated bootstrap.
+#'   - `"multiple"`: Combine multiple CI methods.
+#' @param ci_method_args Optional list of arguments specific to the chosen
+#'   `ci_method`. Default is `NULL`.
+#' @param multiple_methods A list of lists defining combinations of point and
+#'   CI methods to calculate. Each element of the list should specify a
+#'   `pt_method`, `pt_method_args`, `ci_method`, and `ci_method_args`. Default
+#'   is `NULL`.
+#' @param unit Character string specifying the unit of entropy. Options are:
+#'   - `"log2"`: Bits (base 2 logarithm).
+#'   - `"ln"`: Nats (natural logarithm).
+#'   - `"normalize"`: Normalized entropy.
+#' @param conf_level Numeric value between 0 and 1 specifying the confidence
+#'   level for interval estimation. Default is `0.95`.
+#' @param ... Shared arguments. These will be passed to all entropy point estimator
+#' functions and CI method functions with matching argument names, but will be overriden by
+#' method-specific arguments from `pt_method_args`, `ci_method_args`, and `multiple_methods`.
 #'
-#'   # REVISE_NOTE: Implement something like this (below)
-#'   # point_estimate <- switch{pt_method,
-#'   #   "ML" = do.call(entropy_estimator_ML, pt_method_args),
-#'   #   "MM" = do.call(entropy_estimator_MM, pt_method_args)
-#'   # }
+#' @details This function computes Shannon entropy and its associated
+#' confidence intervals. It supports various estimation methods, allowing
+#' users to compute results for multiple methods simultaneously using the
+#' `multiple_methods` argument. If no `multiple_methods` list is provided,
+#' the function creates a single-method list based on the specified arguments.
 #'
+#' @return A list containing:
+#'   - Point estimates (`pt_est`).
+#'   - Confidence intervals (`ci`).
+#' If multiple methods are used, the result is a list of lists.
 #'
-#'   # Number of categories
-#'   K <- length(bin_counts)
+#' @examples
+#' # Example bin counts
+#' counts <- c(10, 20, 30, 40)
 #'
-#'   # Maximum entropy (in bits) for discrete distribution over K categories
-#'   H_max <- log2(K)
+#' # Basic usage with default settings
+#' shannon_entropy(counts)
 #'
-#'   H_estimator <- function(bin_counts, )
+#' # Specify point and CI methods
+#' shannon_entropy(counts, pt_method = "ML", ci_method = "bootstrap_bca")
 #'
-#'   # Entropy estimate (in bits)
-#'   if (pt_method == "HS"){
-#'     H_hat <- entropy::entropy(y = bin_counts,
-#'                               method = "shrink",
-#'                               unit = "log2",
-#'                               verbose = FALSE)
-#'   } else {
-#'     H_hat <- entropy::entropy(y = bin_counts,
-#'                               method = pt_method,
-#'                               unit = "log2")
-#'   }
+#' # Using multiple methods
+#' methods <- list(
+#'   list(pt_method = "ML", ci_method = "Wald"),
+#'   list(pt_method = "MM", ci_method = "bootstrap_pct")
+#' )
+#' shannon_entropy(counts, pt_method = "multiple", ci_method = "multiple",
+#'                 multiple_methods = methods)
 #'
-#'   # Ensure estimate lies between 0 and H_max
-#'   H_hat <- max(min(H_hat, H_max), 0)
+#' @seealso [entropy_pt_est()], [entropy_ci()]
 #'
-#'   # Confidence interval --------------------------------------------------------
-#'
-#'   # Sample size
-#'   n <- sum(bin_counts)
-#'
-#'   alpha <- 1 - conf_level
-#'
-#'   # Wald CI (based on asymptotic normality)
-#'   if(ci_method == "Wald"){
-#'
-#'     # Relevant z-score
-#'     z <- stats::qnorm(1-alpha/2)
-#'
-#'     # Standard error estimate
-#'
-#'     p_hat <- entropy::freqs(y = bin_counts, method = "ML")
-#'
-#'     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
-#'
-#'     H.empirical <- entropy::entropy.empirical(bin_counts, unit = "log2")
-#'
-#'     std_error <- sqrt((nu_hat - H.empirical^2) / n) %>% max(0)
-#'
-#'     # confidence interval
-#'
-#'     ci.lower <- (H_hat - z*std_error) %>% min(H_max) %>% max(0)
-#'
-#'     ci.upper <- (H_hat + z*std_error) %>% min(H_max) %>% max(0)
-#'
-#'   }
-#'
-#'   # Wald CI (based on asymptotic normality)
-#'   if(ci_method == "Asym.Norm_quadratic"){
-#'
-#'     # Relevant z-score
-#'     z <- stats::qnorm(1-alpha/2)
-#'
-#'     # Standard error estimate
-#'
-#'     p_hat <- entropy::freqs(y = bin_counts, method = "ML")
-#'
-#'     nu_hat <- sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0])^2)
-#'
-#'     H.empirical <- entropy::entropy.empirical(bin_counts, unit = "log2")
-#'
-#'     a <- (1 + z^2 / n)
-#'
-#'     b <- -2*H.empirical
-#'
-#'     c <- H.empirical^2 - z^2*nu_hat
-#'
-#'     roots <- c( (- b - sqrt( b^2 - 4*a*c ))/(2*a),
-#'                 (- b + sqrt( b^2 - 4*a*c ))/(2*a) )
-#'
-#'     # confidence interval
-#'
-#'     ci.lower <- min(roots)
-#'
-#'     ci.upper <- max(roots)
-#'
-#'   }
-#'
-#'   # Percentile bootstrap CI
-#'   if(ci_method == "pct_boot"){
-#'
-#'     # Data for resampling
-#'     data_vec <- rep(1:K, bin_counts)
-#'
-#'     # Perform bootstraps
-#'     bootstrap_distribution <- numeric(B)
-#'
-#'     bootstrap_distribution[1] <- H_hat
-#'
-#'     for(b in 2:B){
-#'       data_boot <- sample(data_vec, replace = TRUE)
-#'
-#'       bin_counts_boot <- purrr::map_int(1:K, \(i) sum(data_boot == i))
-#'
-#'       bootstrap_distribution[b] <- H_estimator(bin_counts_boot)
-#'     }
-#'
-#'     # Bootstrap distribution
-#'     bootstrap_distribution <- sort(bootstrap_distribution)
-#'
-#'     # Confidence interval
-#'
-#'     lower_index <- (1 + (B-1)*alpha/2) %>% floor()
-#'
-#'     upper_index <- (1 + (B-1)*(1-alpha/2)) %>% ceiling()
-#'
-#'     ci.lower <- bootstrap_distribution[lower_index]
-#'
-#'     ci.upper <- bootstrap_distribution[upper_index]
-#'
-#'   }
-#'
-#'   # Normalize (if necessary) ---------------------------------------------------
-#'
-#'   if(normalize == FALSE){
-#'     result <- data.frame(entropy = H_hat,
-#'                          ci.lower = ci.lower,
-#'                          ci.upper = ci.upper)
-#'   } else {
-#'     result <- data.frame(normalized.entropy = H_hat / H_max,
-#'                          ci.lower = ci.lower / H_max,
-#'                          ci.upper = ci.upper / H_max)
-#'   }
-#'
-#'
-#'   # Return result: Point estimate and CI
-#'   return(result)
-#'
-#' }
+#' @export
+shannon_entropy <- function(bin_counts,
+                            pt_method = c("ML",
+                                          "MM",
+                                          "Dirichlet",
+                                            "Jeffrey",
+                                            "Laplace",
+                                            "SG",
+                                            "minimax",
+                                          "multiple"),
+                            pt_method_args = NULL,
+                            ci_method = c("automatic",
+                                          "Wald",
+                                          "bootstrap_pct",
+                                          "bootstrap_t",
+                                          "bootstrap_bca",
+                                          "multiple"),
+                            ci_method_args = NULL,
+                            multiple_methods = NULL,
+                            unit = c("log2", "ln", "normalize"),
+                            conf_level = 0.95,
+                            ...){ # Shared args (will try to match)
+
+  # # FOR TESTING ----------------------------------------------------------------
+  # bin_counts <- c(10, 20, 30, 40)
+  # pt_method <- "ML"
+  # pt_method_args <- NULL
+  # ci_method <- "Wald"
+  # ci_method_args <- NULL
+  # multiple_methods <- NULL
+  # unit <- "log2"
+  # conf_level <- 0.95
+  # #-----------------------------------------------------------------------------
+
+
+  # Checks: Ensure desired format ----------------------------------------------
+
+  # Ensure that bin counts are valid (throws error if not)
+  valid_bin_counts(bin_counts)
+
+  # Ensure pt_method and ci_method are valid by matching them with provided options
+  pt_method <- match.arg(pt_method)
+  ci_method <- match.arg(ci_method)
+
+  # Indicator: Calculating multiple methods?
+  multiple <- "multiple" %in% c(pt_method, ci_method)
+
+  # Handling multiple methods -------------------------------------------------
+  if(multiple == TRUE){
+
+    # If only pt_method == "multiple", append ci_method and args to multiple_methods list
+    if(ci_method != "multiple"){
+
+      # # For testing - Example of how multiple_methods might be defined
+      # multiple_methods <- list(m1 = list(pt_method = "ML", pt_method_args = NULL),
+      #                          m2 = list(pt_method = "MM", pt_method_args = NULL))
+
+      # Append ci_method and ci_method_args to each element of multiple_methods
+      multiple_methods <- map(
+        multiple_methods,
+        \(method_list_elt){
+
+          # Add ci_method and ci_method_args to each method in the list
+          method_list_elt$ci_method <- ci_method
+          method_list_elt$ci_method_args <- ci_method_args
+
+          return(method_list_elt)
+        }
+      )
+    }
+    # If only ci_method == "multiple", append pt_method and args to multiple_methods list
+    if((pt_method != "multiple") & (ci_method == "multiple")){
+
+      # # For testing - Example of how multiple_methods might be defined
+      # pt_method <- "ML"
+      # pt_method_args <- list(NULL)
+      # multiple_methods <- list(m1 = list(ci_method = "bootstrap_pct",
+      #                                    ci_method_args = list(B = 10^3)),
+      #                          m2 = list(ci_method = "bootstrap_bca",
+      #                                    ci_method_args = list(B = 10^3)))
+
+      # Append pt_method and pt_method_args to each element of multiple_methods
+      multiple_methods <- map(
+        multiple_methods,
+        \(method_list_elt){
+
+          # Add pt_method and pt_method_args to each method in the list
+          method_list_elt$pt_method <- pt_method
+          method_list_elt$pt_method_args <- pt_method_args
+
+          return(method_list_elt)
+        }
+      )
+    }
+  }
+
+  # If no multiple_methods list provided, create one with single method --------
+  if(is.null(multiple_methods)){
+    multiple_methods <- list(list(pt_method = pt_method,
+                                  pt_method_args = pt_method_args,
+                                  ci_method = ci_method,
+                                  ci_method_args = ci_method_args))
+  }
+
+  # Point estimation -----------------------------------------------------------
+
+  # Compute point estimates for all methods in multiple_methods list
+  pt_est_outputs <- entropy_pt_est(bin_counts,
+                                   method = "multiple",
+                                   multiple_methods = multiple_methods,
+                                   ...)
+
+  # CI calculations ------------------------------------------------------------
+
+  # Save list of point estimator functions (one for each element of multiple_methods)
+  # with sole argument bin_counts (useful for resampling methods)
+  pt_est_fcts <- purrr::map(
+
+    multiple_methods,
+
+    function(method_list_elt){
+      fct <- function(bin_counts){
+        # Return point estimate for given bin_counts using specified method
+        entropy_pt_est(bin_counts,
+                       method = method_list_elt$pt_method,
+                       method_args = method_list_elt$pt_method_args,
+                       ...)$pt_est
+      }
+      return(fct)
+    }
+
+  )
+
+  # Calculate confidence intervals
+
+  # Extract ci_method and ci_method_args from each elt in multiple_methods list
+  ci_multiple_methods <- purrr::map(
+    multiple_methods,
+    function(method_list_elt){
+      method_list_elt <- method_list_elt[3:4] # Extract ci_method and ci_method_args
+      names(method_list_elt) <- c("method", "method_args")
+      return(method_list_elt)
+    }
+  )
+
+  # Use entropy_ci() function to calculate confidence intervals
+  ci_outputs <- entropy_ci(bin_counts,
+                           method = "multiple",
+                           multiple_methods = ci_multiple_methods,
+                           conf_level = conf_level,
+                           unit = unit,
+                           pt_est_fcts = pt_est_fcts,
+                           pt_est_outputs = pt_est_outputs,
+                           ...)
+
+  # Merge point estimates with confidence interval results --------------------
+
+  if(length(multiple_methods) == 1){
+
+    result_list <- merge_lists_with_names(pt_est_outputs$pt_est,
+                                          ci_outputs$ci)
+
+  } else {
+
+    result_list <- purrr::map2(pt_est_outputs, ci_outputs,
+                               merge_lists_with_names)
+
+  }
+
+  # Return final result -------------------------------------------------------
+  return(result_list)
+}
