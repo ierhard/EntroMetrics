@@ -106,6 +106,7 @@ entropy_ci_Wald <- function(
       results_list[setdiff(names(results_list), "prob_est")],
 
       \(x) convert_entropy_units(x,
+                                 current_unit = "log2",
                                  new_unit = unit,
                                  alphabet_size = length(bin_counts))
 

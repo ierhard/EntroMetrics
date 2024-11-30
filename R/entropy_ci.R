@@ -14,11 +14,6 @@ entropy_ci <- function(bin_counts,
                        ...){ # Shared args (will try to match), e.g. B = 10^3 or pre_calc_bootstraps for bootstrap methods or
                              # conf_level = 0.95 or pt_est_fct = entropy_estimator_ML
 
-  # # FOR TESTING ----------------------------------------------------------------
-
-  # #-----------------------------------------------------------------------------
-
-
   # Since entropy_pt_est() delists output when only one method is specified,
   # we "relist" this here to avoid errors.
   if("pt_est" %in% names(pt_est_outputs)){
@@ -115,6 +110,7 @@ entropy_ci <- function(bin_counts,
     # Combine method_args with bin_counts for computation.
     all_args <- method_args
     all_args$bin_counts <- bin_counts
+    all_args$unit <- unit
 
     # Call the appropriate function based on the method name
     result <- do.call(
