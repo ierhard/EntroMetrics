@@ -93,6 +93,10 @@
 #'                 ci_method = "Wald_alt",
 #'                 multiple_methods = multiple_methods)
 #'
+#' shannon_entropy(10*c(1, 7, 3), pt_method = "Dirichlet", ci_method = "Dirichlet")
+#'
+#' shannon_entropy(c(10, 23, 14), pt_method = "Dirichlet", ci_method = "bootstrap_pct")
+#'
 #' @seealso [entropy_pt_est()], [entropy_ci()]
 #'
 #' @export
@@ -109,6 +113,7 @@ shannon_entropy <- function(bin_counts,
                             ci_method = c("automatic",
                                           "Wald",
                                           "Wald_alt",
+                                          "Dirichlet",
                                           "bootstrap_pct",
                                           "bootstrap_t",
                                           "bootstrap_bca",
@@ -161,6 +166,26 @@ shannon_entropy <- function(bin_counts,
   #                          m2 = list(ci_method = "Wald_alt", ci_method_args = NULL))
 
 
+  # bin_counts <- 10*c(1, 7, 3)
+  # pt_method <- "Dirichlet"
+  # pt_method_args <- NULL
+  # ci_method <- "Dirichlet"
+  # ci_method_args <- NULL
+  # multiple_methods <- NULL
+  # unit <- "log2"
+  # conf_level <- 0.95
+  # shannon_entropy(10*c(1, 7, 3), pt_method = "Dirichlet", ci_method = "Dirichlet")
+
+  # bin_counts <- 10*c(1, 7, 3)
+  # pt_method <- "Dirichlet"
+  # pt_method_args <- NULL
+  # ci_method <- "bootstrap_pct"
+  # ci_method_args <- NULL
+  # multiple_methods <- NULL
+  # unit <- "log2"
+  # conf_level <- 0.95
+  # shannon_entropy(c(10, 23, 14), pt_method = "Dirichlet", ci_method = "bootstrap_pct")
+  #
   # #-----------------------------------------------------------------------------
 
 

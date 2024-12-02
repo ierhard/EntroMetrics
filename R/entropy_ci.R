@@ -12,9 +12,14 @@ entropy_ci <- function(bin_counts,
                        conf_level = 0.95, # Confidence level for CI methods.
                        pt_est_fcts = NULL,
                        pt_est_outputs = NULL,
-                       # pre_calc_bootstraps = NULL, # Optional: precomputed bootstrap samples to avoid redundant computations.
                        ...){ # Shared args (will try to match), e.g. B = 10^3 or pre_calc_bootstraps for bootstrap methods or
                              # conf_level = 0.95 or pt_est_fct = entropy_estimator_ML
+
+  # FOR TESTING ----------------------------------------------------------------
+  # method <- "multiple"
+  # method_args <- NULL
+  # multiple_methods <- ci_multiple_methods
+  #-----------------------------------------------------------------------------
 
   # Since entropy_pt_est() delists output when only one method is specified,
   # we "relist" this here to avoid errors.
@@ -54,13 +59,42 @@ entropy_ci <- function(bin_counts,
 
   if(any(stringr::str_starts(method_names, "bootstrap"))){
 
+    # Add default B to multiple_methods_args of each bootstrap method
+    # if not already specified in methods_args list
+    multiple_methods <- purrr::map(
+
+      multiple_methods,
+
+      function(multiple_methods_elt){
+
+        if(
+
+          !"B" %in% names(multiple_methods_elt$method_args) &
+
+          stringr::str_starts(multiple_methods_elt$method, "bootstrap")
+
+        ){
+          multiple_methods_elt$method_args$B <-
+            formals(
+              get(paste0("entropy_ci_", multiple_methods_elt$method))
+            )$B
+        }
+
+        return(multiple_methods_elt)
+
+      }
+
+    )
+
     # Extract B from method_args if present
     B_max <- purrr::map_dbl(multiple_methods,
                             \(multiple_methods_elt){
-                              return(multiple_methods_elt$method_args$B)
+                              eval(multiple_methods_elt$method_args$B)
                               }
                             ) %>% max()
 
+    # Pre-calculate bootstrap subsamples for bin_counts,
+    # save as matrix s.t. each column is a bootstrap subsample of bin_counts
     bootstrap_bin_counts <- rmultinom(B_max,
                                       sum(bin_counts),
                                       bin_counts/sum(bin_counts))
@@ -76,15 +110,23 @@ entropy_ci <- function(bin_counts,
 
     function(multiple_methods_elt, pt_est_fct_elt, pt_est_output_elt){
 
-      # Add point estimate output to each method_args list
-      multiple_methods_elt$method_args$pt_est_output <- pt_est_output_elt
+      # Get method argument names
 
-      # Add point estimate function where applicable
       elt_arg_names <- names(formals(get(
 
         paste0("entropy_ci_", multiple_methods_elt$method)
 
-        )))
+      )))
+
+
+      # Add point estimate output to each method_args list if applicable
+
+      if("pt_est_output" %in% elt_arg_names){
+        multiple_methods_elt$method_args$pt_est_output <- pt_est_output_elt
+      }
+
+
+      # Add point estimate function where applicable
 
       if("pt_est_fct" %in% elt_arg_names){
         multiple_methods_elt$method_args$pt_est_fct <- pt_est_fct_elt
