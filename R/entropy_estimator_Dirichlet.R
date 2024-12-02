@@ -64,7 +64,7 @@ entropy_estimator_Dirichlet <- function(bin_counts,
   Dir_alpha_posterior <- Dir_alpha + bin_counts
 
   # Results
-  results_list <- list(entropy_pt_est = H_hat,
+  results_list <- list(pt_est = H_hat,
                        prob_est = p_hat,
                        Dir_alpha_posterior = Dir_alpha_posterior)
 

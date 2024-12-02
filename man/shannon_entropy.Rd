@@ -9,8 +9,8 @@ shannon_entropy(
   pt_method = c("ML", "MM", "Dirichlet", "Jeffrey", "Laplace", "SG", "minimax",
     "multiple"),
   pt_method_args = NULL,
-  ci_method = c("automatic", "Wald", "Wald_alt", "bootstrap_pct", "bootstrap_t",
-    "bootstrap_bca", "multiple"),
+  ci_method = c("automatic", "Wald", "Wald_alt", "Dirichlet", "bootstrap_pct",
+    "bootstrap_t", "bootstrap_bca", "multiple"),
   ci_method_args = NULL,
   multiple_methods = NULL,
   unit = c("log2", "ln", "normalize"),
@@ -128,6 +128,10 @@ shannon_entropy(bin_counts,
                 pt_method = "multiple",
                 ci_method = "Wald_alt",
                 multiple_methods = multiple_methods)
+
+shannon_entropy(10*c(1, 7, 3), pt_method = "Dirichlet", ci_method = "Dirichlet")
+
+shannon_entropy(c(10, 23, 14), pt_method = "Dirichlet", ci_method = "bootstrap_pct")
 
 }
 \seealso{
