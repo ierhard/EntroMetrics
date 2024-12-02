@@ -2,6 +2,7 @@
 
 export("%>%")
 export(entropy_ci_Wald)
+export(entropy_ci_Wald_alt)
 export(entropy_estimator_Dirichlet)
 export(entropy_estimator_Jeffrey)
 export(entropy_estimator_Laplace)

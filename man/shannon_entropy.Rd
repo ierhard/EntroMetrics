@@ -9,8 +9,8 @@ shannon_entropy(
   pt_method = c("ML", "MM", "Dirichlet", "Jeffrey", "Laplace", "SG", "minimax",
     "multiple"),
   pt_method_args = NULL,
-  ci_method = c("automatic", "Wald", "bootstrap_pct", "bootstrap_t", "bootstrap_bca",
-    "multiple"),
+  ci_method = c("automatic", "Wald", "Wald_alt", "bootstrap_pct", "bootstrap_t",
+    "bootstrap_bca", "multiple"),
   ci_method_args = NULL,
   multiple_methods = NULL,
   unit = c("log2", "ln", "normalize"),
@@ -73,11 +73,9 @@ method-specific arguments from \code{pt_method_args}, \code{ci_method_args}, and
 }
 \value{
 A list containing:
-\itemize{
-\item Point estimates (\code{pt_est}).
-\item Confidence intervals (\code{ci}).
+\item{\code{pt_est}}{point estimate of entropy}
+\item{\code{ci}}{bounds of the confidence interval}
 If multiple methods are used, the result is a list of lists.
-}
 }
 \description{
 This function calculates the Shannon entropy of a set of binned data using
@@ -107,6 +105,28 @@ methods <- list(
 )
 shannon_entropy(counts, pt_method = "multiple", ci_method = "multiple",
                 multiple_methods = methods)
+
+# Using multiple methods with the same point method
+bin_counts <- 10*1:5
+multiple_methods <- list(m1 = list(ci_method = "Wald",
+                                   ci_method_args = list(z_score_dist = "normal")),
+                         m2 = list(ci_method = "Wald_alt",
+                                   ci_method_args = list(z_score_dist = "normal")))
+shannon_entropy(bin_counts,
+                pt_method = "MM",
+                ci_method = "multiple",
+                multiple_methods = multiple_methods)
+
+# Using multiple methods with the same CI method
+bin_counts <- 10*1:5
+multiple_methods <- list(m1 = list(pt_method = "ML",
+                                   pt_method_args = NULL),
+                         m2 = list(pt_method = "MM",
+                                   pt_method_args = NULL))
+shannon_entropy(bin_counts,
+                pt_method = "multiple",
+                ci_method = "Wald_alt",
+                multiple_methods = multiple_methods)
 
 }
 \seealso{

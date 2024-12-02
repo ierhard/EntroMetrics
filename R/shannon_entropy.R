@@ -48,9 +48,9 @@
 #' the function creates a single-method list based on the specified arguments.
 #'
 #' @return A list containing:
-#'   - Point estimates (`pt_est`).
-#'   - Confidence intervals (`ci`).
-#' If multiple methods are used, the result is a list of lists.
+#' \item{`pt_est`}{point estimate of entropy}
+#' \item{`ci`}{bounds of the confidence interval}
+#' If multiple methods are used, the result is a list of lists, each matching the structure of the single-method output.
 #'
 #' @examples
 #' # Example bin counts
@@ -70,6 +70,28 @@
 #' shannon_entropy(counts, pt_method = "multiple", ci_method = "multiple",
 #'                 multiple_methods = methods)
 #'
+#' # Using multiple methods with the same point method
+#' bin_counts <- 10*1:5
+#' multiple_methods <- list(m1 = list(ci_method = "Wald",
+#'                                    ci_method_args = list(z_score_dist = "normal")),
+#'                          m2 = list(ci_method = "Wald_alt",
+#'                                    ci_method_args = list(z_score_dist = "normal")))
+#' shannon_entropy(bin_counts,
+#'                 pt_method = "MM",
+#'                 ci_method = "multiple",
+#'                 multiple_methods = multiple_methods)
+#'
+#' # Using multiple methods with the same CI method
+#' bin_counts <- 10*1:5
+#' multiple_methods <- list(m1 = list(pt_method = "ML",
+#'                                    pt_method_args = NULL),
+#'                          m2 = list(pt_method = "MM",
+#'                                    pt_method_args = NULL))
+#' shannon_entropy(bin_counts,
+#'                 pt_method = "multiple",
+#'                 ci_method = "Wald_alt",
+#'                 multiple_methods = multiple_methods)
+#'
 #' @seealso [entropy_pt_est()], [entropy_ci()]
 #'
 #' @export
@@ -85,6 +107,7 @@ shannon_entropy <- function(bin_counts,
                             pt_method_args = NULL,
                             ci_method = c("automatic",
                                           "Wald",
+                                          "Wald_alt",
                                           "bootstrap_pct",
                                           "bootstrap_t",
                                           "bootstrap_bca",
@@ -124,6 +147,17 @@ shannon_entropy <- function(bin_counts,
   # )
   # unit <- "ln"
   # conf_level <- 0.95
+
+  # # Multiple Methods with same point method and different CI methods
+  # bin_counts <- 10*1:5
+  # pt_method <- "MM"
+  # pt_method_args <- NULL
+  # ci_method <- "multiple"
+  # ci_method_args <- NULL
+  # unit <- "log2"
+  # conf_level <- 0.95
+  # multiple_methods <- list(m1 = list(ci_method = "Wald", ci_method_args = NULL),
+  #                          m2 = list(ci_method = "Wald_alt", ci_method_args = NULL))
 
 
   # #-----------------------------------------------------------------------------
@@ -175,6 +209,8 @@ shannon_entropy <- function(bin_counts,
           # Add pt_method and pt_method_args to each method in the list
           method_list_elt$pt_method <- pt_method
           method_list_elt$pt_method_args <- pt_method_args
+
+          method_list_elt <- method_list_elt[c("pt_method", "pt_method_args", "ci_method", "ci_method_args")]
 
           return(method_list_elt)
         }
@@ -248,7 +284,7 @@ shannon_entropy <- function(bin_counts,
   if(length(multiple_methods) == 1){
 
     result_list <- merge_lists_with_names(ci_outputs,
-                                          pt_est_outputs) %>%
+                                          pt_est_outputs)
 
     result_list <- result_list[c("pt_est", "ci", setdiff(names(result_list), c("pt_est", "ci")))]
 
