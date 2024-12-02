@@ -1,5 +1,6 @@
 entropy_ci <- function(bin_counts,
                        method = c("Wald",
+                                  "Wald_alt",
                                   "bootstrap_pct",
                                   "bootstrap_t",
                                   "bootstrap_bca",
