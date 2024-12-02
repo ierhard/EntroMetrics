@@ -1,6 +1,7 @@
 entropy_ci <- function(bin_counts,
                        method = c("Wald",
                                   "Wald_alt",
+                                  "Dirichlet",
                                   "bootstrap_pct",
                                   "bootstrap_t",
                                   "bootstrap_bca",
@@ -66,8 +67,8 @@ entropy_ci <- function(bin_counts,
 
   }
 
-  # Update multiple_methods with point estimate functions and bootstrap subsamples
-  # as necessary.
+  # Update multiple_methods with point estimate functions, bootstrap subsamples,
+  # and point estimation outputs as necessary.
 
   multiple_methods <- purrr::pmap(
 

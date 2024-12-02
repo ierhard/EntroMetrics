@@ -43,6 +43,7 @@ estimation method. Options are:
 \itemize{
 \item \code{"automatic"}: Automatically selects the best CI method.
 \item \code{"Wald"}: Wald interval.
+\item \code{"Wald_alt"}: Alternative method based on asymptotic normality Basharin's variance approximation.
 \item \code{"bootstrap_pct"}: Percentile bootstrap.
 \item \code{"bootstrap_t"}: Bootstrap-t interval.
 \item \code{"bootstrap_bca"}: Bias-corrected and accelerated bootstrap.
@@ -75,7 +76,7 @@ method-specific arguments from \code{pt_method_args}, \code{ci_method_args}, and
 A list containing:
 \item{\code{pt_est}}{point estimate of entropy}
 \item{\code{ci}}{bounds of the confidence interval}
-If multiple methods are used, the result is a list of lists.
+If multiple methods are used, the result is a list of lists, each matching the structure of the single-method output.
 }
 \description{
 This function calculates the Shannon entropy of a set of binned data using
