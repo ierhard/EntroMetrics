@@ -7,7 +7,6 @@
 #' @param possible_to_update_vec A character vector of variable names that are eligible for updating. This specifies which variables can be updated from `potential_update_list`.
 #'
 #' @return None. The function updates variables directly in the parent environment.
-#' @export
 #'
 #' @examples
 #' # Example usage:

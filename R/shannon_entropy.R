@@ -21,6 +21,7 @@
 #'   estimation method. Options are:
 #'   - `"automatic"`: Automatically selects the best CI method.
 #'   - `"Wald"`: Wald interval.
+#'   - `"Wald_alt"`: Alternative method based on asymptotic normality Basharin's variance approximation.
 #'   - `"bootstrap_pct"`: Percentile bootstrap.
 #'   - `"bootstrap_t"`: Bootstrap-t interval.
 #'   - `"bootstrap_bca"`: Bias-corrected and accelerated bootstrap.
