@@ -16,6 +16,7 @@ Imports:
     gtools,
     magrittr,
     purrr,
+    splines,
     stats
 URL: https://github.com/ierhard/EntroMetrics
 BugReports: https://github.com/ierhard/EntroMetrics/issues
