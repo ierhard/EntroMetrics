@@ -133,6 +133,13 @@ shannon_entropy(10*c(1, 7, 3), pt_method = "Dirichlet", ci_method = "Dirichlet")
 
 shannon_entropy(c(10, 23, 14), pt_method = "Dirichlet", ci_method = "bootstrap_pct")
 
+# Bootstrap-t example with non-default values for B and unit
+shannon_entropy(5*1:5,
+                pt_method = "MM",
+                ci_method = "bootstrap_t",
+                unit = "normalize",
+                B = 10^2)
+
 }
 \seealso{
 \code{\link[=entropy_pt_est]{entropy_pt_est()}}, \code{\link[=entropy_ci]{entropy_ci()}}
