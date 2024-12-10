@@ -71,7 +71,8 @@ entropy_pt_est <- function(bin_counts,
 
   multiple_methods <- update_multiple_methods_with_shared_args(
     multiple_methods = multiple_methods,
-    shared_args_list = list(...)
+    shared_args_list = list(...),
+    type = "pt"
     )
 
   # Calculate the point estimate for each element of multiple_methods --

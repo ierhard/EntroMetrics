@@ -45,7 +45,8 @@ entropy_ci <- function(bin_counts,
 
   multiple_methods <- update_multiple_methods_with_shared_args(
     multiple_methods = multiple_methods,
-    shared_args_list = list(...)
+    shared_args_list = list(...),
+    type = "ci"
   )
 
   # If bootstrap methods are present, precalculate bootstrap subsamples for shared use
@@ -60,7 +61,7 @@ entropy_ci <- function(bin_counts,
   if(any(stringr::str_starts(method_names, "bootstrap"))){
 
     # Add default B to multiple_methods_args of each bootstrap method
-    # if not already specified in methods_args list
+    # if not already specified in method_args list
     multiple_methods <- purrr::map(
 
       multiple_methods,
@@ -118,7 +119,6 @@ entropy_ci <- function(bin_counts,
 
       )))
 
-
       # Add point estimate output to each method_args list if applicable
 
       if("pt_est_output" %in% elt_arg_names){
@@ -133,7 +133,7 @@ entropy_ci <- function(bin_counts,
       }
 
       # Add precalculated bootstrap subsamples (for bin_counts) where applicable
-      if(stringr::str_starts(multiple_methods_elt$method, "bootstrap")){
+      if("pre_calc_bootstraps" %in% elt_arg_names){
         multiple_methods_elt$method_args$pre_calc_bootstraps <- bootstrap_bin_counts
       }
 

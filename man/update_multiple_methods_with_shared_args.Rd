@@ -4,7 +4,11 @@
 \alias{update_multiple_methods_with_shared_args}
 \title{Update multiple methods with shared arguments}
 \usage{
-update_multiple_methods_with_shared_args(multiple_methods, shared_args_list)
+update_multiple_methods_with_shared_args(
+  multiple_methods,
+  shared_args_list,
+  type = c("pt", "ci")
+)
 }
 \arguments{
 \item{multiple_methods}{List of lists, each containing method as a character and the method arguments as a list (although names can differ, e.g. \code{"pt_method"} and \code{"pt_method_args"})}

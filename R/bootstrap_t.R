@@ -8,7 +8,6 @@ bootstrap_t_basic <- function(x_vec,
                               B_sub = 10^2, # Number of nested bootstrap samples used for std. error estimates, if se_fct not provided
                               se_fct = NULL, # optional: analytic formula for the standard error of estimator
                               verbose = FALSE
-                              # pre_calc_bootstraps = NULL # optional pre-calculation of bootstraps
                               ){
 
   # pt_est_fct <- function(x) pt_est_fct(x, ...)
@@ -79,49 +78,49 @@ bootstrap_t_basic <- function(x_vec,
 
 }
 
-# Example
-
-set.seed(123)
-probs <- gtools::rdirichlet(1, alpha = rep(.5, 26))[1,]
-n_sample <- 50
-
-entropy_in_bits <- function(x){
-  bin_counts <- as.numeric(table(x))
-  p <- bin_counts/sum(bin_counts)
-  H <- -sum(p[p > 0] * log2(p[p > 0]))
-  return(H)
-}
-
-true_val <- -sum(probs[probs > 0] * log2(probs[probs > 0]))
-
-in_ci_vec <- logical(20)
-
-counter <- 0
-
-for(i in 1:length(in_ci_vec)){
-
-  x_vec <- sample(letters, n_sample, replace = TRUE, prob = probs)
-
-  ci <- bootstrap_t_basic(x_vec = x_vec,
-                          pt_est_fct = entropy_in_bits)$ci
-
-  in_ci_vec[i] <- ci[1] <= true_val & true_val <= ci[2]
-
-  counter <- counter + 1
-
-  print(
-    counter/length(in_ci_vec)
-  )
-
-  print(
-    mean(in_ci_vec[1:counter])
-  )
-}
-
-mean(in_ci_vec)
-
+# # Example
+#
+# set.seed(123)
+# probs <- gtools::rdirichlet(1, alpha = rep(.5, 26))[1,]
+# n_sample <- 50
+#
+# entropy_in_bits <- function(x){
+#   bin_counts <- as.numeric(table(x))
+#   p <- bin_counts/sum(bin_counts)
+#   H <- -sum(p[p > 0] * log2(p[p > 0]))
+#   return(H)
+# }
+#
+# true_val <- -sum(probs[probs > 0] * log2(probs[probs > 0]))
+#
+# in_ci_vec <- logical(20)
+#
+# counter <- 0
+#
+# for(i in 1:length(in_ci_vec)){
+#
+#   x_vec <- sample(letters, n_sample, replace = TRUE, prob = probs)
+#
+#   ci <- bootstrap_t_basic(x_vec = x_vec,
+#                           pt_est_fct = entropy_in_bits)$ci
+#
+#   in_ci_vec[i] <- ci[1] <= true_val & true_val <= ci[2]
+#
+#   counter <- counter + 1
+#
+#   print(
+#     counter/length(in_ci_vec)
+#   )
+#
+#   print(
+#     mean(in_ci_vec[1:counter])
+#   )
+# }
+#
+# mean(in_ci_vec)
 
 ################################################################################
+# Bootstrap-t method for confidence intervals of statistics with variance stabilization
 
 bootstrap_t <- function(x_vec,
                         pt_est_fct,
@@ -130,7 +129,6 @@ bootstrap_t <- function(x_vec,
                         B_sub = 10^2, # Number of nested bootstrap samples used for std. error estimates, if se_fct not provided
                         se_fct = NULL, # optional: analytic formula for the standard error of estimator
                         variance_stabilization = TRUE # If TRUE, use the variance-stabilized bootstrap-t method
-                        # pre_calc_bootstraps = NULL # optional pre-calculation of bootstraps
                         ){
 
   # # FOR TESTING-----------------------------------------------------------------
@@ -155,14 +153,14 @@ bootstrap_t <- function(x_vec,
   # #-----------------------------------------------------------------------------
 
   if (variance_stabilization == FALSE) {
-    boot_t_basic_output <- bootstrap_t_basic(x_vec = x_vec,
-                                             pt_est_fct = pt_est_fct,
-                                             conf_level = conf_level,
-                                             B = B,
-                                             B_sub = B_sub,
-                                             se_fct = se_fct,
-                                             verbose = FALSE)
-    return(boot_t_basic_output)
+    # Save results
+    results_list <- bootstrap_t_basic(x_vec = x_vec,
+                                      pt_est_fct = pt_est_fct,
+                                      conf_level = conf_level,
+                                      B = B,
+                                      B_sub = B_sub,
+                                      se_fct = se_fct,
+                                      verbose = FALSE)
 
   } else {
 
@@ -254,65 +252,64 @@ bootstrap_t <- function(x_vec,
     ci <- c(ci_lower = inverse_g(output_transformed$ci[1]),
             ci_upper = inverse_g(output_transformed$ci[2]))
 
-    # Return results
+    # Save results
     results_list <- list(ci = ci,
                          pt_est = boot_t_basic_output$pt_est,
                          ci_basic = boot_t_basic_output$ci)
 
-    return(results_list)
-
   }
+  # Return results
+  return(results_list)
 }
 
-
-# Example
-
-set.seed(123)
-probs <- gtools::rdirichlet(1, alpha = rep(.5, 26))[1,]
-n_sample <- 50
-
-entropy_in_bits <- function(x){
-  bin_counts <- as.numeric(table(x))
-  p <- bin_counts/sum(bin_counts)
-  H <- -sum(p[p > 0] * log2(p[p > 0]))
-  return(H)
-}
-
-true_val <- -sum(probs[probs > 0] * log2(probs[probs > 0]))
-
-N_test <- 10
-
-coverage_vec_basic <- logical(N_test)
-coverage_vec_stable <- logical(N_test)
-
-counter <- 0
-
-for(i in 1:length(in_ci_vec)){
-
-  x_vec <- sample(letters, n_sample, replace = TRUE, prob = probs)
-
-  bootstrap_t_output <- bootstrap_t(x_vec = x_vec,
-                                    pt_est_fct = entropy_in_bits)
-
-  ci_stable <- bootstrap_t_output$ci
-  ci_basic <- bootstrap_t_output$ci_basic
-
-  coverage_vec_basic[i] <- ci_basic[1] <= true_val & true_val <= ci_basic[2]
-  coverage_vec_stable[i] <- ci_stable[1] <= true_val & true_val <= ci_stable[2]
-
-  counter <- counter + 1
-
-  print(
-    counter/length(in_ci_vec)
-  )
-
-  print(
-    mean(in_ci_vec[1:counter])
-  )
-}
-
-mean(coverage_vec_basic)
-mean(coverage_vec_stable)
+# # Example
+#
+# set.seed(123)
+# probs <- gtools::rdirichlet(1, alpha = rep(.5, 26))[1,]
+# n_sample <- 50
+#
+# entropy_in_bits <- function(x){
+#   bin_counts <- as.numeric(table(x))
+#   p <- bin_counts/sum(bin_counts)
+#   H <- -sum(p[p > 0] * log2(p[p > 0]))
+#   return(H)
+# }
+#
+# true_val <- -sum(probs[probs > 0] * log2(probs[probs > 0]))
+#
+# N_test <- 10
+#
+# coverage_vec_basic <- logical(N_test)
+# coverage_vec_stable <- logical(N_test)
+#
+# counter <- 0
+#
+# for(i in 1:length(in_ci_vec)){
+#
+#   x_vec <- sample(letters, n_sample, replace = TRUE, prob = probs)
+#
+#   bootstrap_t_output <- bootstrap_t(x_vec = x_vec,
+#                                     pt_est_fct = entropy_in_bits)
+#
+#   ci_stable <- bootstrap_t_output$ci
+#   ci_basic <- bootstrap_t_output$ci_basic
+#
+#   coverage_vec_basic[i] <- ci_basic[1] <= true_val & true_val <= ci_basic[2]
+#   coverage_vec_stable[i] <- ci_stable[1] <= true_val & true_val <= ci_stable[2]
+#
+#   counter <- counter + 1
+#
+#   print(
+#     counter/length(in_ci_vec)
+#   )
+#
+#   print(
+#     mean(in_ci_vec[1:counter])
+#   )
+# }
+#
+# mean(coverage_vec_basic)
+# mean(coverage_vec_stable)
 
 
 

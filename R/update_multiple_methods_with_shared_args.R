@@ -24,13 +24,18 @@
 #' multiple_methods <- update_multiple_methods_with_shared_args(multiple_methods, shared_args_list)
 #' print(multiple_methods)
 update_multiple_methods_with_shared_args <- function(multiple_methods,
-                                                     shared_args_list){
+                                                     shared_args_list,
+                                                     type = c("pt", "ci")){
+
+
+  # Match argument values
+  type <- match.arg(type)
 
   # If shared_args_list non-empty,
   # then assign shared arguments from ... to the method_args of each element in multiple_methods,
   # (unless already defined in method_args, in which case the method_args value takes precedence).
 
-  if(shared_args_list %>% length() > 0){
+  if(length(shared_args_list) > 0){
 
     multiple_methods <- purrr::map(
 
@@ -45,7 +50,10 @@ update_multiple_methods_with_shared_args <- function(multiple_methods,
         names(multiple_methods_elt) <- c("method", "method_args")
 
         # Extract names of arguments for the method
-        method_arg_names <- get(paste0("entropy_estimator_", multiple_methods_elt$method)) %>%
+
+        prefix <- ifelse(type == "pt", "entropy_estimator_", "entropy_ci_")
+
+        method_arg_names <- get(paste0(prefix, multiple_methods_elt$method)) %>%
           formals() %>% names()
 
         # Find overlapping names
