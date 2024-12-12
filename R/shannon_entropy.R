@@ -61,7 +61,7 @@
 #' shannon_entropy(counts)
 #'
 #' # Specify point and CI methods
-#' shannon_entropy(counts, pt_method = "ML", ci_method = "bootstrap_bca")
+#' shannon_entropy(counts, pt_method = "ML", ci_method = "bootstrap_basic")
 #'
 #' # Using multiple methods
 #' methods <- list(
@@ -120,6 +120,7 @@ shannon_entropy <- function(bin_counts,
                             ci_method = c("Wald",
                                           "Wald_alt",
                                           "Dirichlet",
+                                          "bootstrap_basic",
                                           "bootstrap_pct",
                                           "bootstrap_t",
                                           # "bootstrap_bca",
@@ -129,71 +130,6 @@ shannon_entropy <- function(bin_counts,
                             unit = c("log2", "ln", "normalize"),
                             conf_level = 0.95,
                             ...){ # Shared args (will try to match)
-
-  # # FOR TESTING ----------------------------------------------------------------
-  # # Single method
-  # bin_counts <- c(10, 20, 30, 40)
-  # pt_method <- "ML"
-  # pt_method_args <- NULL
-  # ci_method <- "Wald"
-  # ci_method_args <- NULL
-  # multiple_methods <- NULL
-  # unit <- "ln"
-  # conf_level <- 0.95
-
-  # # Multiple Methods
-  # bin_counts <- c(10, 20, 30, 40)
-  # pt_method <- "multiple"
-  # pt_method_args <- NULL
-  # ci_method <- "multiple"
-  # ci_method_args <- NULL
-  # multiple_methods <- list(
-  #   m1 = list(pt_method = "ML",
-  #             pt_method_args = NULL,
-  #             ci_method = "Wald",
-  #             ci_method_args = NULL),
-  #   m2 = list(pt_method = "MM",
-  #             pt_method_args = NULL,
-  #             ci_method = "Wald",
-  #             ci_method_args = NULL)
-  # )
-  # unit <- "ln"
-  # conf_level <- 0.95
-
-  # # Multiple Methods with same point method and different CI methods
-  # bin_counts <- 10*1:5
-  # pt_method <- "MM"
-  # pt_method_args <- NULL
-  # ci_method <- "multiple"
-  # ci_method_args <- NULL
-  # unit <- "log2"
-  # conf_level <- 0.95
-  # multiple_methods <- list(m1 = list(ci_method = "Wald", ci_method_args = NULL),
-  #                          m2 = list(ci_method = "Wald_alt", ci_method_args = NULL))
-
-
-  # bin_counts <- 10*c(1, 7, 3)
-  # pt_method <- "Dirichlet"
-  # pt_method_args <- NULL
-  # ci_method <- "Dirichlet"
-  # ci_method_args <- NULL
-  # multiple_methods <- NULL
-  # unit <- "log2"
-  # conf_level <- 0.95
-  # shannon_entropy(10*c(1, 7, 3), pt_method = "Dirichlet", ci_method = "Dirichlet")
-
-  # bin_counts <- 10*c(1, 7, 3)
-  # pt_method <- "Dirichlet"
-  # pt_method_args <- NULL
-  # ci_method <- "bootstrap_pct"
-  # ci_method_args <- NULL
-  # multiple_methods <- NULL
-  # unit <- "log2"
-  # conf_level <- 0.95
-  # shannon_entropy(c(10, 23, 14), pt_method = "Dirichlet", ci_method = "bootstrap_pct")
-  #
-  # #-----------------------------------------------------------------------------
-
 
   # Checks: Ensure desired format ----------------------------------------------
 
