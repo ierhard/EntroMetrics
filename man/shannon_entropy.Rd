@@ -9,8 +9,8 @@ shannon_entropy(
   pt_method = c("ML", "MM", "Dirichlet", "Jeffrey", "Laplace", "SG", "minimax",
     "multiple"),
   pt_method_args = NULL,
-  ci_method = c("Wald", "Wald_alt", "Dirichlet", "bootstrap_pct", "bootstrap_t",
-    "multiple"),
+  ci_method = c("Wald", "Wald_alt", "Dirichlet", "bootstrap_basic", "bootstrap_pct",
+    "bootstrap_t", "multiple"),
   ci_method_args = NULL,
   multiple_methods = NULL,
   unit = c("log2", "ln", "normalize"),
@@ -97,7 +97,7 @@ counts <- c(10, 20, 30, 40)
 shannon_entropy(counts)
 
 # Specify point and CI methods
-shannon_entropy(counts, pt_method = "ML", ci_method = "bootstrap_bca")
+shannon_entropy(counts, pt_method = "ML", ci_method = "bootstrap_basic")
 
 # Using multiple methods
 methods <- list(
