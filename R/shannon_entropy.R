@@ -22,6 +22,8 @@
 #'   - `"automatic"`: Automatically selects the best CI method.
 #'   - `"Wald"`: Wald interval.
 #'   - `"Wald_alt"`: Alternative method based on asymptotic normality Basharin's variance approximation.
+#'   - `"Dirichlet"`: Dirichlet credence interval, i.e. highest posterior density interval given Dirichlet prior.
+#'   - `"Bootstrap_basic"`: Basic/pivot bootstrap.
 #'   - `"bootstrap_pct"`: Percentile bootstrap.
 #'   - `"bootstrap_t"`: Bootstrap-t interval.
 #'   - `"bootstrap_bca"`: Bias-corrected and accelerated bootstrap.
@@ -123,7 +125,7 @@ shannon_entropy <- function(bin_counts,
                                           "bootstrap_basic",
                                           "bootstrap_pct",
                                           "bootstrap_t",
-                                          # "bootstrap_bca",
+                                          "bootstrap_bca",
                                           "multiple"),
                             ci_method_args = NULL,
                             multiple_methods = NULL,

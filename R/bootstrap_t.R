@@ -10,8 +10,10 @@ bootstrap_t_basic <- function(x_vec,
                               verbose = FALSE
                               ){
 
-  # pt_est_fct <- function(x) pt_est_fct(x, ...)
+  # Remove NA's
+  x_vec <- x_vec[!is.na(x_vec)]
 
+  # Point estimate
   theta_hat <- pt_est_fct(x_vec)
 
   # Get bootstraps (each column of x_bootstraps_df is a bootstrap sample)
