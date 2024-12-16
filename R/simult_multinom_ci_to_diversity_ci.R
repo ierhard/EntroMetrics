@@ -18,8 +18,8 @@
 #         This is a conservative CI of the same level as the simultaneous CI.
 
 simult_multinom_ci_to_diversity_ci <- function(
-    simultaneous_prop_ci_lower,
-    simultaneous_prop_ci_upper,
+    simultaneous_prob_ci_lower,
+    simultaneous_prob_ci_upper,
     diversity_measure = c("entropy",
                           "efficiency", # i.e. normalized entropy
                           "Gini-Simpson",
@@ -29,7 +29,7 @@ simult_multinom_ci_to_diversity_ci <- function(
   # library(tidyverse)
 
   # Number of categories in multinomial distribution
-  n_p <- length(simultaneous_prop_ci_lower)
+  n_p <- length(simultaneous_prob_ci_lower)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Maximization problem
@@ -178,8 +178,8 @@ simult_multinom_ci_to_diversity_ci <- function(
 # upper_vec <- c(.10, .3, .3, .50)
 #
 # simult_multinom_ci_to_diversity_ci(lower_vec,
-#                      upper_vec,
-#                      "efficiency")$ci
+#                                    upper_vec,
+#                                    "efficiency")$ci
 #
 #
 # # No further restrictions beyond p[i] in [0,1] and sum(p) == 1
@@ -187,18 +187,18 @@ simult_multinom_ci_to_diversity_ci <- function(
 # upper_vec <- rep(1, n_p)
 #
 # simult_multinom_ci_to_diversity_ci(lower_vec,
-#                      upper_vec,
-#                      "efficiency")$ci
+#                                    upper_vec,
+#                                    "efficiency")$ci
 #
-# # Test with values from out data set
+# # Another test (with values from actual survey)
 #
 # lower_vec <- c(0.61111111, 0, 0, 0, 0.03703704)
 #
 # upper_vec <- c(0.8317557, 0.1836075, 0.2021261, 0.1650890, 0.2576816)
 #
 # simult_multinom_ci_to_diversity_ci(lower_vec,
-#                      upper_vec,
-#                      "efficiency")$ci
+#                                    upper_vec,
+#                                    "efficiency")$ci
 #
 
 
