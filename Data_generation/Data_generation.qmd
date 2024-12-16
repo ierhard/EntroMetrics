@@ -28,16 +28,32 @@ We begin by randomly generating sample sizes and distributions according to the 
 
 Note that the random variables above should be independent or conditionally independent in the obvious ways.
 
+### Batch generation function
+
 Define a function to generate an arbitrary number of samples.
 ```{r}
 # Data generation function with data.table output
-generate_batch_dt <- function(batch_size = 10^4) {
+generate_batch_dt <- function(batch_size = 10^4,
+                              max_sample_size = 10^3,
+                              max_alphabet_size = 10^4) {
   
   # Vector of sample sizes
-  N_vec <- floor(10^runif(batch_size, min = 0, max = 3)) + 4
+  max_sample_order_magnitude <- log10(max_sample_size)
+  
+  N_vec <- floor(
+    10^runif(batch_size,
+             min = 0, 
+             max = max_sample_order_magnitude)
+    ) + 4
   
   # Vector of alphabet sizes
-  K_vec <- floor(10^runif(batch_size, min = 0, max = 4)) + 1
+  max_alphabet_order_magnitude <- log10(max_alphabet_size)
+  
+  K_vec <- floor(
+    10^runif(batch_size, 
+             min = 0, 
+             max = max_alphabet_order_magnitude)
+    ) + 1
   
   # List of distributions
   p_list <- purrr::map(K_vec, 
@@ -59,15 +75,33 @@ generate_batch_dt <- function(batch_size = 10^4) {
 }
 ```
 
-We now generate the data in batches (for memory efficiency), combine the batches, and save the data to disk.
+### Generation
+
+In this section we:
+1. Set parameters for the scope of data generation
+2. Generate the data in batches (for memory efficiency)
+3. Combine the batches, and save the data to disk.
+
+Begin by setting the parameters.
 
 ```{r}
 # Training data sample size
-train_size <- 10^5
+train_size <- 10^4
+
+# Test data sample size
+test_size <- 10^3
 
 # Batch size
-batch_size <- 10^4
+batch_size <- (10^4)/2
 
+# Largest sample and alphabet sizes (for individual bin counts)
+max_sample_size <- 10^3
+max_alphabet_size <-  10^3
+```
+
+Generate the training data in batches and save to disk.
+
+```{r}
 # Number of batches
 num_batches <- ceiling(train_size / batch_size)
 
@@ -84,7 +118,9 @@ for (i in 1:num_batches) {
   setTxtProgressBar(pb, i)
   
   # Generate batch
-  batch <- generate_batch_dt(batch_size)
+  batch <- generate_batch_dt(batch_size,
+                             max_sample_size = 10^3,
+                             max_alphabet_size = 10^4)
   
   # Save the batch as a separate RDS file
   saveRDS(batch, 
@@ -99,7 +135,11 @@ close(pb)
 
 # Garbage collection for memory efficiency
 gc()
+```
 
+Combined the batches and save the data to disk.
+
+```{r}
 # Combine all batches into a single file
 combined_data <- do.call(
   rbind, 
@@ -118,9 +158,9 @@ gc()
 
 ## Calculate features and response variables
 
-We now calculate the features, response variables, and ancillary information.
+The basic data is now generated and saved; however, features, response variables, and ancillary information must still be calculated.
 
-Features
+**Features**
 - Sample size: $N$
 - Alphabet size: $K$
 - Sample to alphabet ratio (STA): $N/K$
