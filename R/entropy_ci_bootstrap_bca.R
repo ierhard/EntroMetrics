@@ -10,23 +10,13 @@
 #' @param conf_level A numeric value specifying the confidence level for the interval (default is \eqn{0.95}).
 #' @param unit A character string specifying the unit of entropy. Options are `"log2"` (default), `"ln"`, or `"normalize"`. The result will be converted to the specified unit if needed.
 #'
-#' @return A list with the following components:
+#' @return A list with the following components <- <- <- <- <- <- <- <- <- <- <- :
 #' \item{ci}{A numeric vector of length 2 containing the lower and upper bounds of the confidence interval, expressed in the specified entropy unit.}
 #' \item{pt_est}{The point estimate of entropy computed from the input `bin_counts`, expressed in the specified entropy unit.}
 #'
 #' @examples
 #' # Define a simple entropy estimation function (e.g., Shannon entropy in bits)
-#' shannon_entropy_fct <- function(bin_counts) {
-#'   probs <- bin_counts / sum(bin_counts)
-#'   probs <- probs[probs > 0] # Remove zero probabilities
-#'   -sum(probs * log2(probs))
-#' }
-#'
-#' # Example bin counts
-#' bin_counts <- c(10, 15, 25, 50)
-#'
-#' # Compute BCa confidence interval for Shannon entropy
-#' entropy_ci_bootstrap_bca(
+ <- <- <- <- <- <- <- <- <- <- <- <- %>% <- <-
 #'   bin_counts = bin_counts,
 #'   pt_est_fct = shannon_entropy_fct,
 #'   B = 1000,
