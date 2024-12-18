@@ -10,7 +10,7 @@ shannon_entropy(
     "multiple"),
   pt_method_args = NULL,
   ci_method = c("Wald", "Wald_alt", "Dirichlet", "bootstrap_basic", "bootstrap_pct",
-    "bootstrap_t", "multiple"),
+    "bootstrap_t", "bootstrap_bca", "multiple"),
   ci_method_args = NULL,
   multiple_methods = NULL,
   unit = c("log2", "ln", "normalize"),
@@ -44,6 +44,8 @@ estimation method. Options are:
 \item \code{"automatic"}: Automatically selects the best CI method.
 \item \code{"Wald"}: Wald interval.
 \item \code{"Wald_alt"}: Alternative method based on asymptotic normality Basharin's variance approximation.
+\item \code{"Dirichlet"}: Dirichlet credence interval, i.e. highest posterior density interval given Dirichlet prior.
+\item \code{"Bootstrap_basic"}: Basic/pivot bootstrap.
 \item \code{"bootstrap_pct"}: Percentile bootstrap.
 \item \code{"bootstrap_t"}: Bootstrap-t interval.
 \item \code{"bootstrap_bca"}: Bias-corrected and accelerated bootstrap.

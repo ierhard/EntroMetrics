@@ -2,7 +2,8 @@
 % Please edit documentation in R/entropy_ci_bootstrap_basic.R
 \name{entropy_ci_bootstrap_basic}
 \alias{entropy_ci_bootstrap_basic}
-\title{Confidence interval for Shannon entropy using the basic/pivot bootstrap method}
+\title{Basic/pivot bootstrap confidence intervals for Shannon entropy
+Confidence interval for Shannon entropy using the basic/pivot bootstrap method}
 \usage{
 entropy_ci_bootstrap_basic(
   bin_counts,

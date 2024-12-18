@@ -60,7 +60,7 @@ entropy_estimator_Dirichlet <- function(bin_counts,
   # Calculate entropy estimator in bits
   if (estimator_type == "mean_entropy_of_p"){
     MC_samples <- gtools::rdirichlet(n = monte_carlo_samples,
-                                     alpha = Dir_alpha_posterior))
+                                     alpha = Dir_alpha_posterior)
     MC_samples <- as.data.frame(t(MC_samples))
 
     MC_samples <- purrr::map_dbl(MC_samples,

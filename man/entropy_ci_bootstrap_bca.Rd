@@ -24,7 +24,7 @@ entropy_ci_bootstrap_bca(
 \item{unit}{A character string specifying the unit of entropy. Options are \code{"log2"} (default), \code{"ln"}, or \code{"normalize"}. The result will be converted to the specified unit if needed.}
 }
 \value{
-A list with the following components:
+A list with the following components <- <- <- <- <- <- <- <- <- <- <- :
 \item{ci}{A numeric vector of length 2 containing the lower and upper bounds of the confidence interval, expressed in the specified entropy unit.}
 \item{pt_est}{The point estimate of entropy computed from the input \code{bin_counts}, expressed in the specified entropy unit.}
 }
@@ -34,21 +34,23 @@ Computes the bias-corrected and accelerated (BCa) bootstrap confidence interval 
 \examples{
 # Define a simple entropy estimation function (e.g., Shannon entropy in bits)
 shannon_entropy_fct <- function(bin_counts) {
-  probs <- bin_counts / sum(bin_counts)
-  probs <- probs[probs > 0] # Remove zero probabilities
-  -sum(probs * log2(probs))
+  proportions <- bin_counts / sum(bin_counts)
+  -sum(proportions[proportions > 0] * log2(proportions[proportions > 0]))
 }
 
-# Example bin counts
-bin_counts <- c(10, 15, 25, 50)
+# Example bin counts representing observed frequencies of discrete outcomes
+bin_counts <- c(10, 20, 30, 40)
 
-# Compute BCa confidence interval for Shannon entropy
-entropy_ci_bootstrap_bca(
+# Compute the BCa bootstrap confidence interval for Shannon entropy
+result <- entropy_ci_bootstrap_bca(
   bin_counts = bin_counts,
   pt_est_fct = shannon_entropy_fct,
   B = 1000,
   conf_level = 0.95,
   unit = "log2"
 )
+
+# View the results
+print(result)
 
 }

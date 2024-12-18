@@ -7,6 +7,8 @@
 entropy_estimator_Dirichlet(
   bin_counts,
   Dir_alpha = 1,
+  est_type = c("mean_entropy_of_p", "entropy_of_mean_p"),
+  monte_carlo_samples = 10^3,
   unit = c("log2", "ln", "normalize")
 )
 }
@@ -14,6 +16,10 @@ entropy_estimator_Dirichlet(
 \item{bin_counts}{Vector of observed bin counts}
 
 \item{Dir_alpha}{Either (a) a numeric vector for the \eqn{\boldsymbol \alpha} parameter of the Dirichlet distriubiton or (b) a positive real \eqn{\alpha}, which is interpreted as the parameter \eqn{(\alpha , \dots, \alpha )}}
+
+\item{est_type}{Type of entropy estimator to use: either \code{"mean_entropy_of_p"} for \eqn{\mathbb E[H(p)]} or \code{"entropy_of_mean_p"} for \eqn{H(\mathbb E[p])}}
+
+\item{monte_carlo_samples}{Number of Monte Carlo samples to use for the \code{"mean_entropy_of_p"} estimator (default: \eqn{1000})}
 
 \item{unit}{Desired unit (\code{"log2"} for bits, \code{"ln"} for nats, and \code{"normalize"} for normalized entropy/evenness)}
 }

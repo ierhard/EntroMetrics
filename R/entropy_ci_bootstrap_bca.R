@@ -16,13 +16,25 @@
 #'
 #' @examples
 #' # Define a simple entropy estimation function (e.g., Shannon entropy in bits)
- <- <- <- <- <- <- <- <- <- <- <- <- %>% <- <-
+#' shannon_entropy_fct <- function(bin_counts) {
+#'   proportions <- bin_counts / sum(bin_counts)
+#'   -sum(proportions[proportions > 0] * log2(proportions[proportions > 0]))
+#' }
+#'
+#' # Example bin counts representing observed frequencies of discrete outcomes
+#' bin_counts <- c(10, 20, 30, 40)
+#'
+#' # Compute the BCa bootstrap confidence interval for Shannon entropy
+#' result <- entropy_ci_bootstrap_bca(
 #'   bin_counts = bin_counts,
 #'   pt_est_fct = shannon_entropy_fct,
 #'   B = 1000,
 #'   conf_level = 0.95,
 #'   unit = "log2"
 #' )
+#'
+#' # View the results
+#' print(result)
 #'
 #' @export
 #'

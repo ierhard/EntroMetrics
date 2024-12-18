@@ -42,22 +42,22 @@ simult_multinom_ci_to_diversity_ci <- function(
   # library(CVXR)
 
   # Define variable to maximize over
-  p <- Variable(n_p)
+  p <- CVXR::Variable(n_p)
 
   # Define constraints
   const <- list(sum(p) == 1,
-                p >= lower_vec,
-                p <= upper_vec)
+                p >= simultaneous_prob_ci_lower,
+                p <= simultaneous_prob_ci_upper)
 
   # Define objective
   if (diversity_measure == "entropy") {
-    obj <- CVXR::Maximize(sum(entr(p)))
+    obj <- CVXR::Maximize(sum(CVXR::entr(p)))
   } else if (diversity_measure == "efficiency") {
-    obj <- CVXR::Maximize(sum(entr(p))/log(n_p))
+    obj <- CVXR::Maximize(sum(CVXR::entr(p))/log(n_p))
   } else if (diversity_measure == "Gini-Simpson") {
-    obj <- CVXR::Maximize(1 - sum_squares(p))
+    obj <- CVXR::Maximize(1 - CVXR::sum_squares(p))
   } else if (diversity_measure == "Gini-Simpson_normalized") {
-    obj <- CVXR::Maximize((1 - sum_squares(p)) / (1 - 1/n_p))
+    obj <- CVXR::Maximize((1 - CVXR::sum_squares(p)) / (1 - 1/n_p))
   }
 
   # Define problem
@@ -103,8 +103,8 @@ simult_multinom_ci_to_diversity_ci <- function(
   b <- rbind(
     matrix(1,1,1),
     matrix(-1,1,1),
-    matrix(upper_vec, nrow = n_p),
-    matrix(-lower_vec, nrow = n_p)
+    matrix(simultaneous_prob_ci_upper, nrow = n_p),
+    matrix(-simultaneous_prob_ci_lower, nrow = n_p)
   )
 
   # H-representation
@@ -152,7 +152,7 @@ simult_multinom_ci_to_diversity_ci <- function(
   }
 
   # Calculate the function values of the extreme points
-  extreme_point_values <- map_dbl(extreme_points, obj_fct)
+  extreme_point_values <- purrr::map_dbl(extreme_points, obj_fct)
 
   # Store minimum as the lower bound of the confidence interval.
   ci_lower <- min(extreme_point_values)
@@ -174,30 +174,30 @@ simult_multinom_ci_to_diversity_ci <- function(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # # Example: lower and upper bounds in a simultaneous confidence interval
-# lower_vec <- c(.05, .2, .1, .45)
-# upper_vec <- c(.10, .3, .3, .50)
+# simultaneous_prob_ci_lower <- c(.05, .2, .1, .45)
+# simultaneous_prob_ci_upper <- c(.10, .3, .3, .50)
 #
-# simult_multinom_ci_to_diversity_ci(lower_vec,
-#                                    upper_vec,
+# simult_multinom_ci_to_diversity_ci(simultaneous_prob_ci_lower,
+#                                    simultaneous_prob_ci_upper,
 #                                    "efficiency")$ci
 #
 #
 # # No further restrictions beyond p[i] in [0,1] and sum(p) == 1
-# lower_vec <- rep(0, n_p)
-# upper_vec <- rep(1, n_p)
+# simultaneous_prob_ci_lower <- rep(0, n_p)
+# simultaneous_prob_ci_upper <- rep(1, n_p)
 #
-# simult_multinom_ci_to_diversity_ci(lower_vec,
-#                                    upper_vec,
+# simult_multinom_ci_to_diversity_ci(simultaneous_prob_ci_lower,
+#                                    simultaneous_prob_ci_upper,
 #                                    "efficiency")$ci
 #
 # # Another test (with values from actual survey)
 #
-# lower_vec <- c(0.61111111, 0, 0, 0, 0.03703704)
+# simultaneous_prob_ci_lower <- c(0.61111111, 0, 0, 0, 0.03703704)
 #
-# upper_vec <- c(0.8317557, 0.1836075, 0.2021261, 0.1650890, 0.2576816)
+# simultaneous_prob_ci_upper <- c(0.8317557, 0.1836075, 0.2021261, 0.1650890, 0.2576816)
 #
-# simult_multinom_ci_to_diversity_ci(lower_vec,
-#                                    upper_vec,
+# simult_multinom_ci_to_diversity_ci(simultaneous_prob_ci_lower,
+#                                    simultaneous_prob_ci_upper,
 #                                    "efficiency")$ci
 #
 
@@ -224,8 +224,8 @@ simult_multinom_ci_to_diversity_ci <- function(
 # obj <- Maximize(sum(entr(p))/log(n_p))
 #
 # const <- list(sum(p) == 1,
-#               p >= lower_vec,
-#               p <= upper_vec)
+#               p >= simultaneous_prob_ci_lower,
+#               p <= simultaneous_prob_ci_upper)
 #
 # prob_maxEnt <- Problem(obj, const)
 #
@@ -275,8 +275,8 @@ simult_multinom_ci_to_diversity_ci <- function(
 # b <- rbind(
 #   matrix(1,1,1),
 #   matrix(-1,1,1),
-#   matrix(upper_vec, nrow = n_p),
-#   matrix(-lower_vec, nrow = n_p)
+#   matrix(simultaneous_prob_ci_upper, nrow = n_p),
+#   matrix(-simultaneous_prob_ci_lower, nrow = n_p)
 # )
 #
 # # H-representation

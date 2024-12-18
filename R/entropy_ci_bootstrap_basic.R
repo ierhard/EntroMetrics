@@ -1,3 +1,4 @@
+#' @title Basic/pivot bootstrap confidence intervals for Shannon entropy
 #' Confidence interval for Shannon entropy using the basic/pivot bootstrap method
 #'
 #' @description
