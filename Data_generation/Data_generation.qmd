@@ -1,4 +1,20 @@
-# Data generation
+---
+title: "Data Generation"
+format: 
+  html:
+    number-sections: true
+    number-depth: 3
+    toc: true
+    toc-expand: 2
+    toc-depth: 3
+    toc-location: right-body
+    toc-title: Contents
+    math: katex
+execute:
+  enabled: false
+---
+
+## Setup
 
 Load necessary libraries
 
@@ -15,15 +31,13 @@ set.seed(20241212)
 ```
 
 
-## Distribution and sample generation
+## Distribution & sample generation
 
 We begin by randomly generating sample sizes and distributions according to the following schema $10^6$ times:
 
-- Sample size: $N \sim \lfloor 10^{U(0,3) )}\rfloor + 4$ \\ 
-*(ensures sample sizes of at least $5$)*
-- Alphabet size: $K \sim \lfloor 10^{U(0,4) )}\rfloor + 1$ \\ 
-*(ensures alphabets sizes of at least $2$)*
-- Distribution over alphabet: $\mathbf p \sim \operatorname{Dirichlet}\big(\boldsymbol \alpha = (\underbrace{1, \dots, 1}_{K}) \big)$
+- Sample size: $N \sim \lfloor 10^{U(0,3) )}\rfloor + 4$ *(ensures sample sizes of at least $5$)*
+- Alphabet size: $K \sim \lfloor 10^{U(0,4) )}\rfloor + 1$ *(ensures alphabets sizes of at least $2$)*
+- Distribution over alphabet: $\mathbf p \sim \operatorname{Dirichlet}\big(\boldsymbol \alpha = (\underbrace{1, \dots, 1}_{K \text{ times}}) \big)$
 - Sample: $\mathbf X \sim \operatorname{Multinomial}(N; \mathbf p)$
 
 Note that the random variables above should be independent or conditionally independent in the obvious ways.
@@ -78,9 +92,12 @@ generate_batch_dt <- function(batch_size = 10^4,
 ### Generation
 
 In this section we:
-1. Set parameters for the scope of data generation
-2. Generate the data in batches (for memory efficiency)
-3. Combine the batches, and save the data to disk.
+
+1.  Set parameters for the scope of data generation
+
+2.  Generate the data in batches (for memory efficiency)
+
+3.  Combine the batches, and save the data to disk.
 
 Begin by setting the parameters.
 
@@ -118,9 +135,9 @@ for (i in 1:num_batches) {
   setTxtProgressBar(pb, i)
   
   # Generate batch
-  batch <- generate_batch_dt(batch_size,
-                             max_sample_size = 10^3,
-                             max_alphabet_size = 10^4)
+  batch <- generate_batch_dt(batch_size = batch_size,
+                             max_sample_size = max_sample_size,
+                             max_alphabet_size = max_alphabet_size)
   
   # Save the batch as a separate RDS file
   saveRDS(batch, 
@@ -137,7 +154,7 @@ close(pb)
 gc()
 ```
 
-Combined the batches and save the data to disk.
+Combine the batches and save the data to disk.
 
 ```{r}
 # Combine all batches into a single file
@@ -156,19 +173,31 @@ saveRDS(combined_data, "data_train_combined.rds")
 gc()
 ```
 
-## Calculate features and response variables
+## Feature & response variable calculation
 
 The basic data is now generated and saved; however, features, response variables, and ancillary information must still be calculated.
 
 **Features**
+
 - Sample size: $N$
+
 - Alphabet size: $K$
+
 - Sample to alphabet ratio (STA): $N/K$
-- Total variation of empirical distribution to uniform distribution: $d_{\text{TV}}\big( \hat{\mathbf{p}}, (1/K, \dots, 1/K) \big) = \frac{1}{2} \sum_{k=1}^K |\hat p_k - 1/K|$
-- *... (more to come, perhaps $R^2$ metrics for fit of data to power law distribution or exponential decay distribution)*
-- True entropy: $H(\mathbf p) = -\sum_{k=1}^K p_k \log p_k$
-- Empirical various entropy point estimates $\hat H_j(\mathbf X)$ for $j = 1, \dots, m$
-- Best entropy point estimate $\hat k \equiv \hat k(\mathbf X) := \operatorname{argmin}_{j = 1, \dots, m} |\hat H_j(\mathbf X) - H(\mathbf p)|$
+
+- Total variation of empirical distribution to uniform distribution: 
+  $$
+    d_{\text{TV}}\big( \hat{\mathbf{p}}, (1/K, \dots, 1/K) \big) 
+    = \frac{1}{2} \sum_{k=1}^K \left| \hat p_k - \frac 1K \right|
+  $$
+
+- ***... (more to come, perhaps $R^2$ metrics for fit of data to power law distribution or exponential decay distribution)***
+
+- True entropy: $H(\mathbf p) = -\sum_{k=1}^K p_k \log_2 p_k$
+
+- Entropy point estimates of interest: $\hat H_j(\mathbf X)$ for $j = 1, \dots, m$
+
+- Best entropy point estimate: $\hat k \equiv \hat k(\mathbf X) := \operatorname{argmin}_{j = 1, \dots, m} |\hat H_j(\mathbf X) - H(\mathbf p)|$
 
 ```{r}
 # Sample to alphabet ratio (STA)
