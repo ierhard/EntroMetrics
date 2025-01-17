@@ -34,7 +34,7 @@ entropy_ci_interval_transform <- function(bin_counts,
     "Sison-Glaz" = {
 
       ci_multinomial_props <- MultinomialCI::multinomialCI(x = bin_counts,
-                                                            alpha = 1 - conf_level)
+                                                           alpha = 1 - conf_level)
 
     },
 
@@ -45,6 +45,7 @@ entropy_ci_interval_transform <- function(bin_counts,
     }
 
   )
+
   # Calculate CI for multinomial proportions
 
   ci <- simult_multinom_ci_to_diversity_ci(
