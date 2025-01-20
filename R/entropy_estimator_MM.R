@@ -23,7 +23,17 @@ entropy_estimator_MM <- function(bin_counts,
   valid_bin_counts(bin_counts)
 
   # Calculate MM estimator in bits
-  H_hat <- entropy::entropy(bin_counts, method = "MM", unit = "log2")
+
+  # Approximate bias up to O(1/N^2), i.e. Miller-Madow bias correction
+  K <- length(bin_counts) # Alphabet size, i.e. number of bins
+  N <- sum(bin_counts) # Sample size
+  approx_bias <- - log2(exp(1)) * (K-1)/(2*N)
+
+  # ML entropy estimate
+  H_ML <- entropy_estimator_ML(bin_counts, unit = "log2")$pt_est
+
+  # Miller-Madow entropy estimate
+  H_hat <- H_ML - approx_bias
 
   # Convert to desired units
   if(unit != "log2"){
