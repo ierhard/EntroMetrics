@@ -6,7 +6,8 @@
 #'
 #' @param bin_counts Vector of observed bin counts
 #' @param Dir_alpha Either (a) a numeric vector for the \eqn{\boldsymbol \alpha} parameter of the Dirichlet distriubiton or (b) a positive real \eqn{\alpha}, which is interpreted as the parameter \eqn{(\alpha , \dots, \alpha )}
-#' @param est_type Type of entropy estimator to use: either `"mean_entropy_of_p"` for \eqn{\mathbb E[H(p)]} or `"entropy_of_mean_p"` for \eqn{H(\mathbb E[p])}
+#' @param est_type Type of entropy estimator to use: either `"mean_entropy_of_p"` for \eqn{\mathbb E[H(p)]} or `"entropy_of_mean_p"` for \eqn{H(\mathbb E[p])},
+#' where the expectation is taken over the posterior Dirichlet distribution of \eqn{p}
 #' @param monte_carlo_samples Number of Monte Carlo samples to use for the `"mean_entropy_of_p"` estimator (default: \eqn{1000})
 #' @param unit Desired unit (`"log2"` for bits, `"ln"` for nats, and `"normalize"` for normalized entropy/evenness)
 #'
@@ -58,7 +59,7 @@ entropy_estimator_Dirichlet <- function(bin_counts,
   p_hat <- Dir_alpha_posterior / sum(Dir_alpha_posterior)
 
   # Calculate entropy estimator in bits
-  if (estimator_type == "mean_entropy_of_p"){
+  if (est_type == "mean_entropy_of_p"){
     MC_samples <- gtools::rdirichlet(n = monte_carlo_samples,
                                      alpha = Dir_alpha_posterior)
     MC_samples <- as.data.frame(t(MC_samples))
@@ -70,7 +71,7 @@ entropy_estimator_Dirichlet <- function(bin_counts,
 
     rm(MC_samples)
 
-  } else if (estimator_type == "entropy_of_mean_p") {
+  } else if (est_type == "entropy_of_mean_p") {
     # Same as entropy::entropy.Dirichlet(y = bin_counts, a = Dir_alpha, unit = "log2")
     H_hat <- - sum(p_hat[p_hat > 0] * log2(p_hat[p_hat > 0]))
   }

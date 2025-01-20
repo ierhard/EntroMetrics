@@ -4,10 +4,17 @@
 \alias{entropy_estimator_minimax}
 \title{Bayesian entropy estimator with the minimax Dirichlet prior}
 \usage{
-entropy_estimator_minimax(bin_counts, unit = c("log2", "ln", "normalize"))
+entropy_estimator_minimax(
+  bin_counts,
+  est_type = c("mean_entropy_of_p", "entropy_of_mean_p"),
+  unit = c("log2", "ln", "normalize")
+)
 }
 \arguments{
 \item{bin_counts}{Vector of observed bin counts}
+
+\item{est_type}{Type of entropy estimator to use: either \code{"mean_entropy_of_p"} for \eqn{\mathbb E[H(p)]} or \code{"entropy_of_mean_p"} for \eqn{H(\mathbb E[p])},
+where the expectation is taken over the posterior Dirichlet distribution of \eqn{p}}
 
 \item{unit}{Desired unit (\code{"log2"} for bits, \code{"ln"} for nats, and \code{"normalize"} for normalized entropy/evenness)}
 }

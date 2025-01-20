@@ -17,7 +17,8 @@ entropy_estimator_Dirichlet(
 
 \item{Dir_alpha}{Either (a) a numeric vector for the \eqn{\boldsymbol \alpha} parameter of the Dirichlet distriubiton or (b) a positive real \eqn{\alpha}, which is interpreted as the parameter \eqn{(\alpha , \dots, \alpha )}}
 
-\item{est_type}{Type of entropy estimator to use: either \code{"mean_entropy_of_p"} for \eqn{\mathbb E[H(p)]} or \code{"entropy_of_mean_p"} for \eqn{H(\mathbb E[p])}}
+\item{est_type}{Type of entropy estimator to use: either \code{"mean_entropy_of_p"} for \eqn{\mathbb E[H(p)]} or \code{"entropy_of_mean_p"} for \eqn{H(\mathbb E[p])},
+where the expectation is taken over the posterior Dirichlet distribution of \eqn{p}}
 
 \item{monte_carlo_samples}{Number of Monte Carlo samples to use for the \code{"mean_entropy_of_p"} estimator (default: \eqn{1000})}
 
