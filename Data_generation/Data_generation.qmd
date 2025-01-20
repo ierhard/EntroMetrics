@@ -215,59 +215,22 @@ combined_data[, H_true := map_dbl(p,
                                     p_elt <- p_elt[p_elt > 0]
                                     -sum(p_elt * log2(p_elt))
                                   })]
-
 ```
 
-Now loop over all the point estimates that we wish to consider.
+Calculate all the point estimates that we wish to consider.
 
 ```{r}
-# CODE HERE
+# List of functions to apply
+# pt_est_fct_list <- list(
+#   "MM"      = \(bin_counts) entropy_estimator_MM(bin_counts)$pt_est,
+#   "Jeffrey" = \(bin_counts) entropy_estimator_Jeffrey(bin_counts)$pt_est, 
+#   "Laplace" = \(bin_counts) entropy_estimator_Laplace(bin_counts)$pt_est,
+#   "SG"      = \(bin_counts) entropy_estimator_SG(bin_counts)$pt_est,
+#   "minimax" = \(bin_counts) entropy_estimator_minimax(bin_counts)$pt_est
+# )
+
+
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
